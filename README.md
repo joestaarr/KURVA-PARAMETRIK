@@ -12,7 +12,7 @@
 ---
 
 ## 👨‍💻 Pengembang Utama
-**Dikembangkan oleh:** [**Lanciuy**](https://github.com/joestaarr)  
+**Dikembangkan oleh:** [**HAMDANKUJO**](https://github.com/joestaarr)  
 *Senior Fullstack Developer & Mahasiswa Grafika Komputer*
 
 ---
@@ -78,7 +78,7 @@ Pastikan sistem Anda sudah menginstal alat-alat berikut sebelum memulai server:
 Buka terminal Anda dan jalankan perintah:
 ```bash
 git clone https://github.com/joestaarr/KURVA-PARAMETRIK.git
-cd KURVA-PARAMETRIK
+cd dashboard-kurva
 ```
 
 **2. Instalasi Dependensi Backend**
