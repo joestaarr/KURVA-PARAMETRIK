@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Kurva Parametrik</title>
+    <title>Dashboard Kurva Parametrik — Visualisasi Titik</title>
+    <meta name="description" content="Dashboard interaktif untuk merender dan menganalisis kurva parametrik (Lingkaran, Elips, Parabola, Hiperbola) dengan output titik-titik dan detail perhitungan matematis lengkap.">
     <link rel="stylesheet" href="/static/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="container">
         <!-- Kolom Kiri: Kontrol Panel -->
         <aside class="control-panel glass-panel">
             <h1>Dashboard Kurva</h1>
+            <p class="subtitle">Mode Output: <span class="badge-dot">● Titik (Dots)</span></p>
             
             <div class="form-group">
                 <label for="curveType">Jenis Kurva</label>
@@ -34,10 +36,12 @@
                 <!-- Input parameter dinamis akan di-generate oleh JS -->
             </div>
 
-            <button id="btnProcess" class="btn-primary">Proses Gambar</button>
+            <button id="btnProcess" class="btn-primary">
+                <span class="btn-icon">●</span> Proses Gambar (Titik)
+            </button>
 
             <div class="analysis-panel glass-panel-inner">
-                <h3>Panel Analisis</h3>
+                <h3>Panel Analisis Detail</h3>
                 <div id="analysisContent">
                     <!-- Detail analisis akan di-generate oleh JS -->
                     <p>Pilih kurva dan parameter untuk melihat analisis.</p>
@@ -49,8 +53,15 @@
         <main class="visualization-panel">
             <div class="canvas-container glass-panel">
                 <div id="initialOverlay" class="canvas-overlay">
-                    <h2>Siap Merender</h2>
-                    <p>Atur parameter di panel kiri dan klik "Proses Gambar"</p>
+                    <div class="overlay-content">
+                        <div class="overlay-dots">
+                            <span class="dot dot-1"></span>
+                            <span class="dot dot-2"></span>
+                            <span class="dot dot-3"></span>
+                        </div>
+                        <h2>Siap Merender Titik</h2>
+                        <p>Atur parameter di panel kiri dan klik "Proses Gambar"</p>
+                    </div>
                 </div>
                 <!-- Kanvas render ukuran 600x500 sesuai kriteria -->
                 <canvas id="curveCanvas" width="600" height="500"></canvas>
@@ -63,6 +74,32 @@
                 </div>
                 <div class="render-status">
                     <span id="renderStatusText">Menunggu input...</span>
+                </div>
+            </div>
+
+            <!-- Tabel Perhitungan Detail -->
+            <div id="calcTableContainer" class="calc-table-container glass-panel" style="display: none;">
+                <h3>📋 Tabel Sampel Perhitungan Titik</h3>
+                <p class="table-desc">Menampilkan sampel titik-titik dengan detail kalkulasi lengkap (max 20 titik merata dari seluruh rentang t)</p>
+                <div class="table-scroll">
+                    <table class="calc-table">
+                        <thead>
+                            <tr>
+                                <th>No.</th>
+                                <th>t (°)</th>
+                                <th>t (rad)</th>
+                                <th>x</th>
+                                <th>y</th>
+                                <th>dx/dt</th>
+                                <th>dy/dt</th>
+                                <th>|v|</th>
+                                <th>κ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="calcTableBody">
+                            <!-- Data titik akan diisi oleh JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </main>

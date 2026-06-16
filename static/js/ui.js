@@ -1,22 +1,26 @@
 /**
  * ui.js
- * Menangani logika Event Listener, Form Builder, dan Panel Analisis
+ * Menangani logika Event Listener, Form Builder, Panel Analisis Detail,
+ * dan Tabel Sampel Titik
  */
 
 const curveSelect = document.getElementById('curveType');
 const paramsContainer = document.getElementById('paramsContainer');
 const presetGrid = document.getElementById('presetGrid');
 const analysisContent = document.getElementById('analysisContent');
+const calcTableBody = document.getElementById('calcTableBody');
 const btnProcess = document.getElementById('btnProcess');
 
-// Menyediakan definisi form input secara dinamis untuk masing-masing kurva
+// =====================================================================
+// DEFINISI PARAMETER FORM
+// =====================================================================
 function getParamDefs(curveType) {
     const commonParams = [
         { id: 'xc', label: 'Pusat X (xc)', type: 'number', default: 0 },
         { id: 'yc', label: 'Pusat Y (yc)', type: 'number', default: 0 },
         { id: 'tMin', label: 'T Min', type: 'number', default: 0 },
         { id: 'tMax', label: 'T Max', type: 'number', default: 360 },
-        { id: 'delta', label: 'Interval (\u0394)', type: 'number', default: 1, step: 0.1 }
+        { id: 'delta', label: 'Interval (Δ)', type: 'number', default: 1, step: 0.1 }
     ];
 
     switch (curveType) {
@@ -37,7 +41,7 @@ function getParamDefs(curveType) {
                 { id: 'yc', label: 'Pusat Y (yc)', type: 'number', default: 0 },
                 { id: 'tMin', label: 'T Min', type: 'number', default: -10 },
                 { id: 'tMax', label: 'T Max', type: 'number', default: 10 },
-                { id: 'delta', label: 'Interval (\u0394)', type: 'number', default: 0.1, step: 0.01 },
+                { id: 'delta', label: 'Interval (Δ)', type: 'number', default: 0.1, step: 0.01 },
                 { id: 'a', label: 'Fokus (a)', type: 'number', default: 10 },
                 { id: 'orientation', label: 'Orientasi', type: 'select', options: [
                     { value: 'up', label: 'Buka ke Atas' },
@@ -52,7 +56,7 @@ function getParamDefs(curveType) {
                 { id: 'yc', label: 'Pusat Y (yc)', type: 'number', default: 0 },
                 { id: 'tMin', label: 'T Min (derajat)', type: 'number', default: -60 },
                 { id: 'tMax', label: 'T Max (derajat)', type: 'number', default: 60 },
-                { id: 'delta', label: 'Interval (\u0394)', type: 'number', default: 1, step: 0.1 },
+                { id: 'delta', label: 'Interval (Δ)', type: 'number', default: 1, step: 0.1 },
                 { id: 'a', label: 'Sumbu Semi-Mayor (a)', type: 'number', default: 50 },
                 { id: 'b', label: 'Sumbu Semi-Minor (b)', type: 'number', default: 40 },
                 { id: 'orientation', label: 'Orientasi', type: 'select', options: [
@@ -64,7 +68,9 @@ function getParamDefs(curveType) {
     }
 }
 
-// 6 Preset unik untuk mempercepat user mencoba parameter yang bagus
+// =====================================================================
+// PRESETS
+// =====================================================================
 function getPresets(curveType) {
     switch (curveType) {
         case 'circle':
@@ -106,19 +112,21 @@ function getPresets(curveType) {
     }
 }
 
-// Generate HTML elements untuk form
+// =====================================================================
+// FORM BUILDER
+// =====================================================================
 function buildForm(curveType) {
     const params = getParamDefs(curveType);
-    paramsContainer.innerHTML = ''; // Bersihkan kontainer
-    
+    paramsContainer.innerHTML = '';
+
     params.forEach(param => {
         const div = document.createElement('div');
         div.className = 'form-group';
-        
+
         const label = document.createElement('label');
         label.setAttribute('for', `param_${param.id}`);
         label.textContent = param.label;
-        
+
         let input;
         if (param.type === 'select') {
             input = document.createElement('select');
@@ -137,18 +145,20 @@ function buildForm(curveType) {
             input.value = param.default;
             if (param.step) input.step = param.step;
         }
-        
+
         div.appendChild(label);
         div.appendChild(input);
         paramsContainer.appendChild(div);
     });
 }
 
-// Generate tombol HTML untuk presets
+// =====================================================================
+// PRESET BUILDER
+// =====================================================================
 function buildPresets(curveType) {
     const presets = getPresets(curveType);
     presetGrid.innerHTML = '';
-    
+
     presets.forEach(preset => {
         const btn = document.createElement('button');
         btn.className = 'btn-preset';
@@ -165,7 +175,9 @@ function buildPresets(curveType) {
     });
 }
 
-// Mengambil semua nilai saat ini di form UI
+// =====================================================================
+// FORM VALUE READER
+// =====================================================================
 function getFormValues(curveType) {
     const params = getParamDefs(curveType);
     const values = {};
@@ -180,58 +192,361 @@ function getFormValues(curveType) {
     return values;
 }
 
-// Mengisi Panel Analisis dengan Info Rumus dan Properti Kurva
-function updateAnalysisPanel(curveType, values, totalPoints) {
-    let equation = '';
-    let props = '';
+// =====================================================================
+// HELPER: Format angka dengan akurasi tinggi
+// =====================================================================
+/**
+ * Format angka dengan presisi yang ditentukan
+ * Menampilkan "—" untuk nilai undefined/null
+ * Menampilkan "∞" untuk nilai tak hingga
+ */
+function fmt(val, decimals = 4) {
+    if (val === undefined || val === null || isNaN(val)) return '—';
+    if (!isFinite(val)) return '∞';
     
-    switch (curveType) {
-        case 'circle':
-            equation = `x = ${values.xc} + ${values.r} &middot; cos(t)<br>y = ${values.yc} + ${values.r} &middot; sin(t)`;
-            props = `Jari-jari (r): ${values.r}`;
-            break;
-        case 'ellipse':
-            equation = `x = ${values.xc} + ${values.a} &middot; cos(t)<br>y = ${values.yc} + ${values.b} &middot; sin(t)`;
-            props = `Sumbu X (a): ${values.a}<br>Sumbu Y (b): ${values.b}`;
-            break;
-        case 'parabola':
-            equation = `x = f(t)<br>y = g(t)<br><em>Tergantung orientasi</em>`;
-            props = `Fokus (a): ${values.a}<br>Arah: ${values.orientation.toUpperCase()}`;
-            break;
-        case 'hyperbola':
-            equation = `x = ${values.xc} &plusmn; ${values.a} &middot; sec(t)<br>y = ${values.yc} + ${values.b} &middot; tan(t)`;
-            props = `Semi-mayor (a): ${values.a}<br>Semi-minor (b): ${values.b}`;
-            break;
-    }
-    
-    const html = `
-        <p><strong>Rumus Parametrik:</strong></p>
-        <p><code>${equation}</code></p>
-        <hr style="border:0; border-top:1px solid rgba(255,255,255,0.1); margin:10px 0;">
-        <p><strong>Properti Kurva:</strong><br>${props}</p>
-        <p><strong>Rentang $t$:</strong> ${values.tMin} s/d ${values.tMax}</p>
-        <p><strong>Interval (Δ):</strong> ${values.delta}</p>
-        <p><strong>Estimasi Titik:</strong> ~${totalPoints}</p>
-    `;
-    analysisContent.innerHTML = html;
+    // Pembulatan dengan presisi tinggi
+    return Number(val).toFixed(decimals);
 }
 
-// Listener: Perbarui form saat memilih jenis kurva lain di dropdown
+// =====================================================================
+// PANEL ANALISIS DETAIL
+// =====================================================================
+function updateAnalysisPanel(curveType, values, points) {
+    const dataPoints = points.filter(p => !p.break);
+    const totalPoints = dataPoints.length;
+    const meta = points.meta || {};
+
+    let equationHTML = '';
+    let propsHTML = '';
+    let derivHTML = '';
+    let geometryHTML = '';
+
+    switch (curveType) {
+        case 'circle': {
+            const r = values.r;
+            equationHTML = `
+                <div class="eq-block">
+                    <span class="eq-label">Persamaan Parametrik:</span>
+                    <div class="eq-formula">x(t) = ${values.xc} + ${r} · cos(t)</div>
+                    <div class="eq-formula">y(t) = ${values.yc} + ${r} · sin(t)</div>
+                </div>
+                <div class="eq-block">
+                    <span class="eq-label">Persamaan Kartesian:</span>
+                    <div class="eq-formula">(x − ${values.xc})² + (y − ${values.yc})² = ${r}² = ${r*r}</div>
+                </div>
+            `;
+            derivHTML = `
+                <div class="eq-block">
+                    <span class="eq-label">Turunan Pertama:</span>
+                    <div class="eq-formula">dx/dt = −${r} · sin(t)</div>
+                    <div class="eq-formula">dy/dt = ${r} · cos(t)</div>
+                </div>
+                <div class="eq-block">
+                    <span class="eq-label">Kecepatan Parametrik:</span>
+                    <div class="eq-formula">|v(t)| = √(dx/dt² + dy/dt²) = ${r} (konstan)</div>
+                </div>
+            `;
+            geometryHTML = `
+                <div class="prop-grid">
+                    <div class="prop-item"><span class="prop-key">Keliling</span><span class="prop-val">${fmt(meta.keliling, 2)} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Luas</span><span class="prop-val">${fmt(meta.luas, 2)} px²</span></div>
+                    <div class="prop-item"><span class="prop-key">Kelengkungan κ</span><span class="prop-val">${fmt(meta.curvatureConst, 6)} (konstan)</span></div>
+                    <div class="prop-item"><span class="prop-key">Radius Kelengkungan</span><span class="prop-val">${fmt(meta.radiusKelengkungan, 2)} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Eksentrisitas</span><span class="prop-val">0 (lingkaran sempurna)</span></div>
+                    <div class="prop-item"><span class="prop-key">Busur Terukur</span><span class="prop-val">${fmt(meta.totalArcLength, 2)} px</span></div>
+                </div>
+            `;
+            propsHTML = `
+                <div class="prop-grid">
+                    <div class="prop-item"><span class="prop-key">Pusat</span><span class="prop-val">(${values.xc}, ${values.yc})</span></div>
+                    <div class="prop-item"><span class="prop-key">Jari-jari</span><span class="prop-val">${r} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Diameter</span><span class="prop-val">${r * 2} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Bounding Box</span><span class="prop-val">[${values.xc - r}, ${values.xc + r}] × [${values.yc - r}, ${values.yc + r}]</span></div>
+                </div>
+            `;
+            break;
+        }
+        case 'ellipse': {
+            const a = values.a, b = values.b;
+            equationHTML = `
+                <div class="eq-block">
+                    <span class="eq-label">Persamaan Parametrik:</span>
+                    <div class="eq-formula">x(t) = ${values.xc} + ${a} · cos(t)</div>
+                    <div class="eq-formula">y(t) = ${values.yc} + ${b} · sin(t)</div>
+                </div>
+                <div class="eq-block">
+                    <span class="eq-label">Persamaan Kartesian:</span>
+                    <div class="eq-formula">(x − ${values.xc})²/${a}² + (y − ${values.yc})²/${b}² = 1</div>
+                </div>
+            `;
+            derivHTML = `
+                <div class="eq-block">
+                    <span class="eq-label">Turunan Pertama:</span>
+                    <div class="eq-formula">dx/dt = −${a} · sin(t)</div>
+                    <div class="eq-formula">dy/dt = ${b} · cos(t)</div>
+                </div>
+                <div class="eq-block">
+                    <span class="eq-label">Kecepatan Parametrik:</span>
+                    <div class="eq-formula">|v(t)| = √(${a}²sin²t + ${b}²cos²t) — bervariasi</div>
+                </div>
+                <div class="eq-block">
+                    <span class="eq-label">Kelengkungan:</span>
+                    <div class="eq-formula">κ(t) = ${a}·${b} / (${a}²sin²t + ${b}²cos²t)^(3/2)</div>
+                </div>
+            `;
+            geometryHTML = `
+                <div class="prop-grid">
+                    <div class="prop-item"><span class="prop-key">Keliling (Ramanujan)</span><span class="prop-val">≈ ${fmt(meta.keliling, 2)} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Luas</span><span class="prop-val">${fmt(meta.luas, 2)} px²</span></div>
+                    <div class="prop-item"><span class="prop-key">Eksentrisitas</span><span class="prop-val">${fmt(meta.eksentrisitas, 6)}</span></div>
+                    <div class="prop-item"><span class="prop-key">Jarak Fokus (c)</span><span class="prop-val">${fmt(meta.jarakFokus, 2)} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Fokus 1</span><span class="prop-val">(${fmt(meta.fokus1?.x, 1)}, ${fmt(meta.fokus1?.y, 1)})</span></div>
+                    <div class="prop-item"><span class="prop-key">Fokus 2</span><span class="prop-val">(${fmt(meta.fokus2?.x, 1)}, ${fmt(meta.fokus2?.y, 1)})</span></div>
+                    <div class="prop-item"><span class="prop-key">Busur Terukur</span><span class="prop-val">${fmt(meta.totalArcLength, 2)} px</span></div>
+                </div>
+            `;
+            propsHTML = `
+                <div class="prop-grid">
+                    <div class="prop-item"><span class="prop-key">Pusat</span><span class="prop-val">(${values.xc}, ${values.yc})</span></div>
+                    <div class="prop-item"><span class="prop-key">Semi-Mayor</span><span class="prop-val">${meta.semiMajor} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Semi-Minor</span><span class="prop-val">${meta.semiMinor} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Rasio a:b</span><span class="prop-val">${fmt(a/b, 3)}</span></div>
+                </div>
+            `;
+            break;
+        }
+        case 'parabola': {
+            const a = values.a;
+            const ori = values.orientation;
+            let eqX = '', eqY = '', dX = '', dY = '';
+
+            switch (ori) {
+                case 'right':
+                    eqX = `x(t) = ${values.xc} + ${a}·t²`; eqY = `y(t) = ${values.yc} + ${2*a}·t`;
+                    dX = `dx/dt = ${2*a}·t`; dY = `dy/dt = ${2*a}`;
+                    break;
+                case 'left':
+                    eqX = `x(t) = ${values.xc} − ${a}·t²`; eqY = `y(t) = ${values.yc} + ${2*a}·t`;
+                    dX = `dx/dt = −${2*a}·t`; dY = `dy/dt = ${2*a}`;
+                    break;
+                case 'up':
+                    eqX = `x(t) = ${values.xc} + ${2*a}·t`; eqY = `y(t) = ${values.yc} + ${a}·t²`;
+                    dX = `dx/dt = ${2*a}`; dY = `dy/dt = ${2*a}·t`;
+                    break;
+                case 'down':
+                    eqX = `x(t) = ${values.xc} + ${2*a}·t`; eqY = `y(t) = ${values.yc} − ${a}·t²`;
+                    dX = `dx/dt = ${2*a}`; dY = `dy/dt = −${2*a}·t`;
+                    break;
+            }
+
+            equationHTML = `
+                <div class="eq-block">
+                    <span class="eq-label">Persamaan Parametrik (${ori.toUpperCase()}):</span>
+                    <div class="eq-formula">${eqX}</div>
+                    <div class="eq-formula">${eqY}</div>
+                </div>
+            `;
+            derivHTML = `
+                <div class="eq-block">
+                    <span class="eq-label">Turunan Pertama:</span>
+                    <div class="eq-formula">${dX}</div>
+                    <div class="eq-formula">${dY}</div>
+                </div>
+                <div class="eq-block">
+                    <span class="eq-label">Kelengkungan:</span>
+                    <div class="eq-formula">κ(t) = 1 / (${2*a} · (1 + t²)^(3/2))</div>
+                    <div class="eq-formula">κ(0) = ${fmt(meta.kelengkunganVertex, 6)} (di vertex)</div>
+                </div>
+            `;
+            geometryHTML = `
+                <div class="prop-grid">
+                    <div class="prop-item"><span class="prop-key">Vertex</span><span class="prop-val">(${meta.vertex?.x}, ${meta.vertex?.y})</span></div>
+                    <div class="prop-item"><span class="prop-key">Fokus</span><span class="prop-val">(${meta.fokus?.x}, ${meta.fokus?.y})</span></div>
+                    <div class="prop-item"><span class="prop-key">Latus Rectum</span><span class="prop-val">${fmt(meta.latusRectum, 2)} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Radius Kelengkungan (vertex)</span><span class="prop-val">${fmt(meta.radiusKelengkunganVertex, 2)} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Busur Terukur</span><span class="prop-val">${fmt(meta.totalArcLength, 2)} px</span></div>
+                </div>
+            `;
+            propsHTML = `
+                <div class="prop-grid">
+                    <div class="prop-item"><span class="prop-key">Parameter (a)</span><span class="prop-val">${a}</span></div>
+                    <div class="prop-item"><span class="prop-key">Orientasi</span><span class="prop-val">${ori.toUpperCase()}</span></div>
+                </div>
+            `;
+            break;
+        }
+        case 'hyperbola': {
+            const a = values.a, b = values.b;
+            const ori = values.orientation;
+            let mainEq = '';
+
+            if (ori === 'vertical') {
+                mainEq = `
+                    <div class="eq-formula">x(t) = ${values.xc} + ${b} · tan(t)</div>
+                    <div class="eq-formula">y(t) = ${values.yc} ± ${a} · sec(t)</div>
+                `;
+            } else {
+                mainEq = `
+                    <div class="eq-formula">x(t) = ${values.xc} ± ${a} · sec(t)</div>
+                    <div class="eq-formula">y(t) = ${values.yc} + ${b} · tan(t)</div>
+                `;
+            }
+
+            equationHTML = `
+                <div class="eq-block">
+                    <span class="eq-label">Persamaan Parametrik (${ori.toUpperCase()}):</span>
+                    ${mainEq}
+                </div>
+                <div class="eq-block">
+                    <span class="eq-label">Persamaan Kartesian:</span>
+                    <div class="eq-formula">${ori !== 'vertical' 
+                        ? `(x − ${values.xc})²/${a}² − (y − ${values.yc})²/${b}² = 1` 
+                        : `(y − ${values.yc})²/${a}² − (x − ${values.xc})²/${b}² = 1`}</div>
+                </div>
+            `;
+            derivHTML = `
+                <div class="eq-block">
+                    <span class="eq-label">Turunan Pertama:</span>
+                    <div class="eq-formula">${ori !== 'vertical' 
+                        ? `dx/dt = ${a} · sec(t)·tan(t)` 
+                        : `dx/dt = ${b} · sec²(t)`}</div>
+                    <div class="eq-formula">${ori !== 'vertical' 
+                        ? `dy/dt = ${b} · sec²(t)` 
+                        : `dy/dt = ${a} · sec(t)·tan(t)`}</div>
+                </div>
+            `;
+            geometryHTML = `
+                <div class="prop-grid">
+                    <div class="prop-item"><span class="prop-key">Eksentrisitas (e)</span><span class="prop-val">${fmt(meta.eksentrisitas, 6)}</span></div>
+                    <div class="prop-item"><span class="prop-key">Jarak Fokus (c)</span><span class="prop-val">${fmt(meta.jarakFokus, 2)} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Fokus 1</span><span class="prop-val">(${fmt(meta.fokus1?.x, 1)}, ${fmt(meta.fokus1?.y, 1)})</span></div>
+                    <div class="prop-item"><span class="prop-key">Fokus 2</span><span class="prop-val">(${fmt(meta.fokus2?.x, 1)}, ${fmt(meta.fokus2?.y, 1)})</span></div>
+                    <div class="prop-item"><span class="prop-key">Slope Asimtot</span><span class="prop-val">±${fmt(meta.asimtotSlope, 4)}</span></div>
+                    <div class="prop-item"><span class="prop-key">Busur Terukur</span><span class="prop-val">${fmt(meta.totalArcLength, 2)} px</span></div>
+                </div>
+            `;
+            propsHTML = `
+                <div class="prop-grid">
+                    <div class="prop-item"><span class="prop-key">Pusat</span><span class="prop-val">(${values.xc}, ${values.yc})</span></div>
+                    <div class="prop-item"><span class="prop-key">Semi-Transversal (a)</span><span class="prop-val">${a} px</span></div>
+                    <div class="prop-item"><span class="prop-key">Semi-Konjugat (b)</span><span class="prop-val">${b} px</span></div>
+                </div>
+            `;
+            break;
+        }
+    }
+
+    // Render panel utama
+    const html = `
+        <div class="analysis-section">
+            <h4><span class="section-icon">📐</span> Persamaan</h4>
+            ${equationHTML}
+        </div>
+        <div class="analysis-section">
+            <h4><span class="section-icon">📊</span> Turunan & Kelengkungan</h4>
+            ${derivHTML}
+        </div>
+        <div class="analysis-section">
+            <h4><span class="section-icon">📏</span> Properti Kurva</h4>
+            ${propsHTML}
+        </div>
+        <div class="analysis-section">
+            <h4><span class="section-icon">🔬</span> Geometri Lanjutan</h4>
+            ${geometryHTML}
+        </div>
+        <div class="analysis-section">
+            <h4><span class="section-icon">⚙️</span> Parameter Rendering</h4>
+            <div class="prop-grid">
+                <div class="prop-item"><span class="prop-key">Rentang t</span><span class="prop-val">${values.tMin} → ${values.tMax}</span></div>
+                <div class="prop-item"><span class="prop-key">Interval Δ</span><span class="prop-val">${values.delta}</span></div>
+                <div class="prop-item"><span class="prop-key">Total Titik</span><span class="prop-val">${totalPoints}</span></div>
+                <div class="prop-item"><span class="prop-key">Mode Render</span><span class="prop-val">Titik (Dots)</span></div>
+            </div>
+        </div>
+    `;
+    analysisContent.innerHTML = html;
+
+    // Isi tabel sampel perhitungan
+    updateCalcTable(dataPoints, curveType);
+}
+
+// =====================================================================
+// TABEL PERHITUNGAN DETAIL (SAMPEL)
+// =====================================================================
+function updateCalcTable(dataPoints, curveType) {
+    if (!calcTableBody) return;
+
+    // Ambil sampel titik (max 20 titik merata)
+    const maxSamples = 20;
+    const step = Math.max(1, Math.floor(dataPoints.length / maxSamples));
+    const samples = [];
+    for (let i = 0; i < dataPoints.length; i += step) {
+        samples.push(dataPoints[i]);
+        if (samples.length >= maxSamples) break;
+    }
+    // Selalu sertakan titik terakhir
+    if (samples.length > 0 && samples[samples.length - 1] !== dataPoints[dataPoints.length - 1]) {
+        samples.push(dataPoints[dataPoints.length - 1]);
+    }
+
+    let rows = '';
+    samples.forEach((pt, idx) => {
+        // Format dengan presisi tinggi untuk akurasi maksimal
+        const tDisp = fmt(pt.t, 2);           // Parameter t: 2 desimal
+        const radDisp = pt.rad !== undefined ? fmt(pt.rad, 4) : fmt(degToRad(pt.t), 4);  // Radian: 4 desimal
+        const xDisp = fmt(pt.x, 3);           // Koordinat X: 3 desimal untuk akurasi
+        const yDisp = fmt(pt.y, 3);           // Koordinat Y: 3 desimal untuk akurasi
+        const dxDisp = pt.dxdt !== undefined ? fmt(pt.dxdt, 3) : '—';  // dx/dt: 3 desimal
+        const dyDisp = pt.dydt !== undefined ? fmt(pt.dydt, 3) : '—';  // dy/dt: 3 desimal
+        const speedDisp = pt.speed !== undefined ? fmt(pt.speed, 3) : '—';  // Speed: 3 desimal
+        const kDisp = pt.curvature !== undefined && pt.curvature !== null ? fmt(pt.curvature, 6) : '—';  // Curvature: 6 desimal
+
+        rows += `
+            <tr>
+                <td>${pt.pointIndex !== undefined ? pt.pointIndex : idx}</td>
+                <td>${tDisp}</td>
+                <td>${radDisp}</td>
+                <td class="coord-cell">${xDisp}</td>
+                <td class="coord-cell">${yDisp}</td>
+                <td>${dxDisp}</td>
+                <td>${dyDisp}</td>
+                <td>${speedDisp}</td>
+                <td>${kDisp}</td>
+            </tr>
+        `;
+    });
+
+    calcTableBody.innerHTML = rows;
+
+    // Tampilkan container tabel
+    const tableContainer = document.getElementById('calcTableContainer');
+    if (tableContainer) {
+        tableContainer.style.display = 'block';
+    }
+}
+
+// =====================================================================
+// EVENT LISTENERS
+// =====================================================================
+
+// Perbarui form saat memilih jenis kurva lain
 curveSelect.addEventListener('change', (e) => {
     const type = e.target.value;
     buildForm(type);
     buildPresets(type);
     analysisContent.innerHTML = '<p>Klik "Proses Gambar" untuk melihat analisis.</p>';
+    // Sembunyikan tabel
+    const tableContainer = document.getElementById('calcTableContainer');
+    if (tableContainer) tableContainer.style.display = 'none';
 });
 
-// Listener: Klik Proses Gambar
+// Klik Proses Gambar
 btnProcess.addEventListener('click', () => {
     const type = curveSelect.value;
     const vals = getFormValues(type);
-    
+
     let points = [];
-    
-    // Perhitungan matematika melalui geometryCalc.js
+
     switch (type) {
         case 'circle':
             points = calculateCircle(vals.xc, vals.yc, vals.r, vals.delta, vals.tMin, vals.tMax);
@@ -246,15 +561,15 @@ btnProcess.addEventListener('click', () => {
             points = calculateHyperbola(vals.xc, vals.yc, vals.a, vals.b, vals.delta, vals.tMin, vals.tMax, vals.orientation);
             break;
     }
-    
-    // Update panel detail info
-    updateAnalysisPanel(type, vals, points.length);
-    
-    // Kirim titik ke canvasAnimator.js untuk dirender
+
+    // Update panel analisis detail
+    updateAnalysisPanel(type, vals, points);
+
+    // Kirim titik ke canvasAnimator.js untuk dirender sebagai DOTS
     animateCurve(points);
 });
 
-// Load awal aplikasi
+// Load awal
 window.addEventListener('DOMContentLoaded', () => {
     buildForm('circle');
     buildPresets('circle');
