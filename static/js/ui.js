@@ -15,10 +15,18 @@ const btnProcess = document.getElementById('btnProcess');
 // DEFINISI PARAMETER FORM (Data Controller)
 // =====================================================================
 /**
- * [DATA CONTROLLER]
- * Fungsi getParamDefs() bertugas untuk mendefinisikan bidang input (form)
- * apa saja yang dibutuhkan oleh setiap jenis kurva.
- * Return value berupa array of object yang nanti di-render oleh UI Controller.
+ * [DATA CONTROLLER] getParamDefs
+ * ---------------------------------------------------------------------
+ * Fungsi ini mengelola SKEMA DATA untuk form input. Setiap kurva punya 
+ * kebutuhan parameter matematis yang berbeda.
+ * 
+ * @param {string} curveType - Jenis kurva ('circle', 'ellipse', 'parabola', 'hyperbola')
+ * @returns {Array<Object>} Array berisi definisi input (id, label, type, default, step).
+ * 
+ * Penjelasan Output:
+ * - commonParams: Selalu merender titik pusat (xc, yc) dan rentang sudut/waktu (tMin, tMax, delta).
+ * - Khusus Parabola/Hiperbola: Terdapat tipe input 'select' untuk orientasi kurva.
+ * Data ini tidak langsung tampil di layar, melainkan disuplai ke [UI CONTROLLER].
  */
 function getParamDefs(curveType) {
     const commonParams = [
@@ -77,10 +85,20 @@ function getParamDefs(curveType) {
 // PRESETS (Library Controller)
 // =====================================================================
 /**
- * [LIBRARY CONTROLLER]
- * Fungsi getPresets() menyimpan daftar konfigurasi angka siap pakai (preset).
- * Tujuannya agar pengguna bisa langsung melihat bentuk yang bagus tanpa
- * menebak-nebak angka.
+ * [LIBRARY CONTROLLER] getPresets
+ * ---------------------------------------------------------------------
+ * Menyimpan 'Blueprints' atau Preset angka cantik yang sudah teruji 
+ * menghasilkan visualisasi kurva yang proposional dan simetris di kanvas.
+ * 
+ * @param {string} curveType - Jenis kurva
+ * @returns {Array<Object>} Kumpulan preset siap pakai
+ * 
+ * Penjelasan Output (Contoh Lingkaran):
+ * Mengembalikan array of objects, di mana setiap object punya:
+ * - label: Nama tombol preset (misal: "Kecil", "Besar")
+ * - params: Object berisi nilai pasti untuk menimpa form (xc, yc, r, tMin, tMax, delta)
+ * Catatan Teknis: Semua nilai delta pada Lingkaran & Elips sudah
+ * dipastikan merupakan pembagi bulat dari 90 agar render titiknya simetris.
  */
 function getPresets(curveType) {
     switch (curveType) {
@@ -127,10 +145,19 @@ function getPresets(curveType) {
 // FORM BUILDER (UI Controller)
 // =====================================================================
 /**
- * [UI CONTROLLER]
- * Fungsi buildForm() bertugas merender (menggambar) kotak input HTML
- * ke layar berdasarkan data yang diberikan oleh getParamDefs().
- * Secara dinamis membuat elemen <input> atau <select>.
+ * [UI CONTROLLER] buildForm
+ * ---------------------------------------------------------------------
+ * Fungsi ini bertindak sebagai DOM Manipulator. Ia mengambil skema data 
+ * dari [DATA CONTROLLER] lalu menyuntikkannya menjadi elemen HTML sungguhan.
+ * 
+ * @param {string} curveType - Jenis kurva aktif
+ * 
+ * Penjelasan Proses:
+ * 1. Mengosongkan div paramsContainer.
+ * 2. Me-looping array dari getParamDefs().
+ * 3. Jika type === 'select', ia membuat <select> dan mengisinya dengan <option>.
+ * 4. Jika type === 'number', ia membuat <input type="number">.
+ * 5. Menyematkan semua elemen tersebut ke dalam DOM agar tampil di layar.
  */
 function buildForm(curveType) {
     const params = getParamDefs(curveType);
@@ -440,12 +467,24 @@ curveSelect.addEventListener('change', (e) => {
 });
 
 /**
- * [MAIN EVENT CONTROLLER / HUB]
- * Ini adalah jantung aplikasi. Saat tombol "Proses Gambar" diklik:
- * 1. Ia mengambil nilai input dari Form.
- * 2. Ia memanggil fungsi matematika yang tepat dari geometryCalc.js.
- * 3. Ia meneruskan data koordinat ke fitur tabel dan penjelasan matematis.
- * 4. Dan paling penting, ia menyuruh canvasAnimator.js untuk mulai menggambar!
+ * [MAIN EVENT CONTROLLER / HUB] btnProcess.addEventListener
+ * ---------------------------------------------------------------------
+ * Ini adalah JANTUNG UTAMA dari aplikasi (Entry Point Eksekusi).
+ * Dipicu setiap kali pengguna menekan tombol "Proses Gambar".
+ * 
+ * Alur Kerja (Workflow):
+ * 1. MENGAMBIL NILAI (Input): Membaca state tipe kurva dan menyedot seluruh 
+ *    angka yang diketik user dari form menggunakan getFormValues().
+ * 2. PROSES MATEMATIKA (Logic): Mengoper angka-angka tersebut ke [MATH ENGINE CONTROLLER]
+ *    (calculateCircle, calculateEllipse, dll) di file geometryCalc.js.
+ *    -> Outputnya: Array of Point Objects.
+ * 3. KALKULASI BOUNDING BOX (Auto-Zoom): Mencari titik ekstrem (min/max X dan Y) 
+ *    dari hasil kalkulasi matematika, lalu menyimpannya di points.meta.boundingBox 
+ *    agar Kanvas tahu seberapa besar dia harus melakukan Zoom otomatis.
+ * 4. RENDER TEKS (UI): Memanggil updateAnalysisPanel() untuk merender cerita dan rumus,
+ *    serta updateCalcTable() untuk menampilkan data tabular.
+ * 5. RENDER GRAFIK (Output): Memanggil animateCurve() ke canvasAnimator.js untuk 
+ *    melukis titik-titik tersebut secara visual.
  */
 // Klik Proses Gambar
 btnProcess.addEventListener('click', () => {

@@ -28,20 +28,23 @@ let cachedPointsArray = null;
 // COORDINATE MAPPING (Coordinate Controller)
 // =====================================================================
 /**
- * [COORDINATE CONTROLLER]
+ * [COORDINATE CONTROLLER] mapCoordinate
+ * ---------------------------------------------------------------------
  * Memetakan koordinat KARTESIAN MATEMATIKA ke sistem KOORDINAT PIKSEL LAYAR.
  * 
- * Transformasi Koordinat:
- *   px = w/2 + x    ← Geser origin ke tengah horizontal (left/right)
- *   py = h/2 - y    ← Geser origin ke tengah vertikal & balik sumbu Y
+ * Mengapa ini dibutuhkan?
+ * 1. Di Matematika: Titik (0,0) ada di tengah. Y positif ke atas.
+ * 2. Di Layar HTML Canvas: Titik (0,0) ada di pojok KIRI ATAS. Y positif ke BAWAH.
  * 
- * CATATAN PENTING:
- *   - Layar: Y bertambah ke BAWAH (origin top-left)
- *   - Matematika: Y bertambah ke ATAS (origin center)
- *   - Koordinat (0,0) di matematika → center canvas pada layar
+ * Cara Kerjanya:
+ *   px = (w/2) + (x * currentScale) + offsetX
+ *   py = (h/2) - (y * currentScale) + offsetY  <-- Minus karena Y terbalik di kanvas
  * 
- * VALIDASI: Koordinat titik harus tetap dalam canvas bounds
- * untuk menghindari rendering artefak di luar area display
+ * @param {number} x, y - Koordinat matematika mentah
+ * @param {number} w, h - Lebar dan tinggi elemen kanvas
+ * @returns {Object|null} - Koordinat pixel siap dirender (px, py)
+ *                          Me-return null jika titik berada jauh di luar layar
+ *                          (Teknik "Culling" agar tidak membuang performa CPU).
  */
 function mapCoordinate(x, y, w, h) {
     const px = w / 2 + (x * currentScale) + offsetX;
@@ -375,14 +378,23 @@ function drawFocusMarker(ctx, fx, fy, w, h, label) {
 // ANIMASI UTAMA - RENDER TITIK-TITIK (DOTS)
 // =====================================================================
 /**
- * [ANIMATION & RENDER CONTROLLER]
- * Fungsi animateCurve() adalah otak dari animasi penggambaran kurva.
- * Ia menerima titik-titik dari geometryCalc.js, lalu memanggil fungsi 
- * mapCoordinate() untuk mengubahnya ke koordinat layar, dan akhirnya
- * menggambarnya satu per satu dengan efek animasi requestAnimationFrame.
- *
- * Menerima array points dan melakukan animasi rendering titik-titik
- * dengan warna gradient berdasarkan progress parameter t
+ * [ANIMATION & RENDER CONTROLLER] animateCurve
+ * ---------------------------------------------------------------------
+ * Fungsi animateCurve() adalah otak visual / panggung teaternya!
+ * Ia menerima array titik mentah dari geometryCalc, lalu menyutradarai 
+ * penggambarannya lapis demi lapis.
+ * 
+ * ALUR KERJA:
+ * 1. AUTO-ZOOM: Membaca boundingBox dari data titik, lalu menghitung `currentScale` 
+ *    agar kurva raksasa muat di layar, atau kurva kecil diperbesar (Fit to Screen).
+ *    Juga menghitung `offsetX` dan `offsetY` agar posisinya tepat di tengah.
+ * 2. GRID DRAWING: Memanggil drawGrid() untuk melukis kertas milimeter blok.
+ * 3. ANIMATION LOOP: Menggunakan `requestAnimationFrame` untuk melukis 
+ *    satu per satu titik (dots) ke layar seolah-olah sedang digambar manual.
+ * 4. COLOR GRADING: Memberikan warna dari Oranye ke Merah Darah berdasarkan
+ *    seberapa jauh perjalanan parameter t (progress).
+ * 
+ * @param {Array<Object>} pointsArray - Array dari [MATH ENGINE CONTROLLER]
  */
 function animateCurve(pointsArray) {
     const w = canvas.width;
