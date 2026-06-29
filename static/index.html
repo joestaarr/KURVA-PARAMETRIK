@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Kurva Parametrik — Visualisasi Titik</title>
     <meta name="description" content="Dashboard interaktif untuk merender dan menganalisis kurva parametrik (Lingkaran, Elips, Parabola, Hiperbola) dengan output titik-titik dan detail perhitungan matematis lengkap.">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=15">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Kolom Kiri: Kontrol Panel -->
-        <aside class="control-panel glass-panel">
+    <div class="container bento-layout">
+        <!-- Kolom Kiri: Kontrol Panel (Sticky) -->
+        <aside class="control-panel bento-card">
             <h1>Dashboard Kurva</h1>
             <p class="subtitle">Mode Output: <span class="badge-dot">● Titik (Dots)</span></p>
             
@@ -41,19 +41,11 @@
             <button id="btnProcess" class="btn-primary">
                 <span class="btn-icon">●</span> Proses Gambar (Titik)
             </button>
-
-            <div class="analysis-panel glass-panel-inner">
-                <h3>Panel Analisis Detail</h3>
-                <div id="analysisContent">
-                    <!-- Detail analisis akan di-generate oleh JS -->
-                    <p>Pilih kurva dan parameter untuk melihat analisis.</p>
-                </div>
-            </div>
         </aside>
 
-        <!-- Kolom Kanan: Visualisasi -->
+        <!-- Kolom Kanan: Visualisasi & Penjelasan -->
         <main class="visualization-panel">
-            <div class="canvas-container glass-panel">
+            <div class="canvas-container bento-card">
                 <div id="initialOverlay" class="canvas-overlay">
                     <div class="overlay-content">
                         <div class="overlay-dots">
@@ -65,11 +57,11 @@
                         <p>Atur parameter di panel kiri dan klik "Proses Gambar"</p>
                     </div>
                 </div>
-                <!-- Kanvas render ukuran 600x500 sesuai kriteria -->
-                <canvas id="curveCanvas" width="600" height="500"></canvas>
+                <!-- Kanvas render diperbesar untuk mendominasi area -->
+                <canvas id="curveCanvas" width="1000" height="700"></canvas>
             </div>
 
-            <div class="status-bar glass-panel">
+            <div class="status-bar bento-card">
                 <div class="live-tracking">
                     <span class="label">Live Koordinat:</span>
                     <span id="liveX">X: 0.00</span> | <span id="liveY">Y: 0.00</span>
@@ -79,8 +71,16 @@
                 </div>
             </div>
 
+            <!-- Panel Penjelasan Edukasi (Di bawah Canvas) -->
+            <div class="analysis-panel bento-card bento-edu">
+                <h3>🎓 Panel Penjelasan Edukatif</h3>
+                <div id="analysisContent" class="edu-content">
+                    <p class="edu-placeholder">Silakan pilih kurva dan parameter lalu klik "Proses Gambar" di panel kiri untuk melihat penjelasan langkah perhitungannya.</p>
+                </div>
+            </div>
+
             <!-- Tabel Perhitungan Detail -->
-            <div id="calcTableContainer" class="calc-table-container glass-panel" style="display: none;">
+            <div id="calcTableContainer" class="calc-table-container bento-card" style="display: none;">
                 <h3>📋 Tabel Sampel Perhitungan Titik</h3>
                 <p class="table-desc">Menampilkan sampel titik-titik dengan detail kalkulasi lengkap (max 20 titik merata dari seluruh rentang t)</p>
                 <div class="table-scroll">
@@ -108,8 +108,8 @@
     </div>
 
     <!-- Scripts dipisah per tanggung jawab -->
-    <script src="/static/js/geometryCalc.js"></script>
-    <script src="/static/js/canvasAnimator.js"></script>
-    <script src="/static/js/ui.js"></script>
+    <script src="/static/js/geometryCalc.js?v=9"></script>
+    <script src="/static/js/canvasAnimator.js?v=14"></script>
+    <script src="/static/js/ui.js?v=17"></script>
 </body>
 </html>

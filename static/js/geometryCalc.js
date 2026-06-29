@@ -5,10 +5,11 @@
  */
 
 // =====================================================================
-// UTILITAS MATEMATIKA
+// UTILITAS MATEMATIKA (Math Helper Controller)
 // =====================================================================
 
 /**
+ * [MATH HELPER CONTROLLER]
  * Konversi derajat ke radian
  * Rumus: rad = deg × (π / 180)
  */
@@ -75,56 +76,25 @@ function computeCurvature(points, delta) {
 }
 
 // =====================================================================
-// LINGKARAN (CIRCLE)
+// LINGKARAN (Math Engine Controller)
 // =====================================================================
 /**
+ * [MATH ENGINE CONTROLLER: CIRCLE]
+ * Fungsi ini bertugas menghitung titik-titik koordinat untuk bentuk Lingkaran.
+ * 
  * Rumus Parametrik Lingkaran:
  *   x(t) = xc + r · cos(t)
  *   y(t) = yc + r · sin(t)
  *
- * Turunan pertama:
+ * Turunan Pertama (Kecepatan):
  *   dx/dt = -r · sin(t)
- *   dy/dt =  r · cos(t)
+ *   dy/dt = r · cos(t)
  *
  * Kecepatan parametrik:
  *   |v(t)| = √(dx/dt² + dy/dt²) = r  (konstan untuk lingkaran)
  *
  * Kelengkungan:
  *   κ = 1/r  (konstan untuk lingkaran)
- *
- * Properti geometri:
- *   Keliling = 2πr
- *   Luas     = πr²
- */
-/**
- * PERHITUNGAN LINGKARAN (CIRCLE) - AKURAT & TERUJI
- * 
- * Rumus Parametrik Lingkaran STANDAR:
- *   x(t) = xc + r · cos(t)
- *   y(t) = yc + r · sin(t)
- *
- * Parameter:
- *   t ∈ [tMin, tMax] dalam DERAJAT (0° - 360°)
- *   xc, yc = koordinat pusat (center)
- *   r = jari-jari (radius)
- *   delta = interval sampling (step)
- *
- * Turunan Pertama (untuk kecepatan & kelengkungan):
- *   dx/dt = -r · sin(t)
- *   dy/dt =  r · cos(t)
- *
- * Kecepatan Parametrik (speed):
- *   |v(t)| = √((dx/dt)² + (dy/dt)²) = r  [KONSTAN]
- *   → Semua titik di lingkaran memiliki speed = r
- *
- * Kelengkungan (curvature):
- *   κ = 1/r  [KONSTAN untuk semua titik]
- *   → Radius kelengkungan = r
- *
- * Properti Geometri Lingkaran:
- *   Keliling = 2πr
- *   Luas     = πr²
- *   Eksentrisitas = 0 (lingkaran sempurna)
  */
 function calculateCircle(xc, yc, r, delta, tMin, tMax) {
     const points = [];
@@ -183,61 +153,25 @@ function calculateCircle(xc, yc, r, delta, tMin, tMax) {
 }
 
 // =====================================================================
-// ELIPS (ELLIPSE)
+// ELIPS (Math Engine Controller)
 // =====================================================================
 /**
+ * [MATH ENGINE CONTROLLER: ELLIPSE]
+ * Menghitung titik-titik koordinat untuk bentuk Elips.
+ *
  * Rumus Parametrik Elips:
  *   x(t) = xc + a · cos(t)
  *   y(t) = yc + b · sin(t)
  *
- * Turunan pertama:
+ * Turunan Pertama (Kecepatan):
  *   dx/dt = -a · sin(t)
- *   dy/dt =  b · cos(t)
+ *   dy/dt = b · cos(t)
  *
  * Kecepatan parametrik:
  *   |v(t)| = √(a²sin²t + b²cos²t)
  *
  * Kelengkungan:
  *   κ(t) = ab / (a²sin²t + b²cos²t)^(3/2)
- *
- * Properti geometri:
- *   Keliling ≈ π(a+b)(1 + 3h/(10+√(4-3h)))  [Ramanujan Approximation II]
- *   Luas     = πab
- *   Eksentrisitas = √(1 - (b/a)²) jika a ≥ b
- */
-/**
- * PERHITUNGAN ELIPS (ELLIPSE) - AKURAT & TERUJI
- * 
- * Rumus Parametrik Elips STANDAR:
- *   x(t) = xc + a · cos(t)
- *   y(t) = yc + b · sin(t)
- *
- * Parameter:
- *   t ∈ [tMin, tMax] dalam DERAJAT (0° - 360°)
- *   xc, yc = koordinat pusat (center)
- *   a = semi-mayor (sumbu panjang X)
- *   b = semi-minor (sumbu pendek Y)
- *   delta = interval sampling (step)
- *
- * Turunan Pertama (untuk kecepatan & kelengkungan):
- *   dx/dt = -a · sin(t)
- *   dy/dt =  b · cos(t)
- *
- * Kecepatan Parametrik (speed):
- *   |v(t)| = √((a·sin(t))² + (b·cos(t))²)  [BERVARIASI]
- *   → Minimum di t=0° atau 180° → |v| = b
- *   → Maksimum di t=90° atau 270° → |v| = a
- *
- * Kelengkungan (curvature):
- *   κ(t) = ab / (a²sin²t + b²cos²t)^(3/2)  [BERVARIASI]
- *   → Maksimum di sumbu pendek (titik tertajam)
- *   → Minimum di sumbu panjang (terlunak)
- *
- * Properti Geometri Elips:
- *   Keliling ≈ π(a+b)(1 + 3h/(10+√(4-3h)))  [Ramanujan Approx II]
- *   Luas     = πab
- *   Eksentrisitas = √(1 - (b/a)²) jika a ≥ b  [0 < e < 1]
- *   Jarak fokus dari pusat: c = √(a² - b²)
  */
 function calculateEllipse(xc, yc, a, b, delta, tMin, tMax) {
     const points = [];
@@ -312,29 +246,17 @@ function calculateEllipse(xc, yc, a, b, delta, tMin, tMax) {
 }
 
 // =====================================================================
-// PARABOLA
+// PARABOLA (Math Engine Controller)
 // =====================================================================
 /**
- * Rumus Parametrik Parabola (4 orientasi):
- *
- * Buka Kanan:  x = xc + a·t²,  y = yc + 2a·t
- *   dx/dt = 2at,  dy/dt = 2a
- *
- * Buka Kiri:   x = xc - a·t²,  y = yc + 2a·t
- *   dx/dt = -2at, dy/dt = 2a
- *
- * Buka Atas:   x = xc + 2a·t,  y = yc + a·t²
- *   dx/dt = 2a,   dy/dt = 2at
- *
- * Buka Bawah:  x = xc + 2a·t,  y = yc - a·t²
- *   dx/dt = 2a,   dy/dt = -2at
- *
- * Kelengkungan:
- *   κ(t) = 2a / (4a²t² + 4a²)^(3/2)  = 1 / (2a(1+t²)^(3/2))
- *
- * Properti:
- *   Fokus terletak di jarak a/4 dari vertex (untuk y = ax²)
- *   Latus Rectum = 4 × (jarak fokus ke vertex)
+ * [MATH ENGINE CONTROLLER: PARABOLA]
+ * Menghitung titik-titik koordinat untuk Parabola.
+ * 
+ * Rumus Parametrik Parabola (Orientasi Ke Atas):
+ *   x(t) = xc + t
+ *   y(t) = yc + t² / (4a)
+ *   dx/dt = 1
+ *   dy/dt = t / (2a)
  */
 function calculateParabola(xc, yc, a, delta, tMin, tMax, orientation) {
     const points = [];

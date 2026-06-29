@@ -12,8 +12,14 @@ const calcTableBody = document.getElementById('calcTableBody');
 const btnProcess = document.getElementById('btnProcess');
 
 // =====================================================================
-// DEFINISI PARAMETER FORM
+// DEFINISI PARAMETER FORM (Data Controller)
 // =====================================================================
+/**
+ * [DATA CONTROLLER]
+ * Fungsi getParamDefs() bertugas untuk mendefinisikan bidang input (form)
+ * apa saja yang dibutuhkan oleh setiap jenis kurva.
+ * Return value berupa array of object yang nanti di-render oleh UI Controller.
+ */
 function getParamDefs(curveType) {
     const commonParams = [
         { id: 'xc', label: 'Pusat X (xc)', type: 'number', default: 0 },
@@ -60,8 +66,7 @@ function getParamDefs(curveType) {
                 { id: 'a', label: 'Sumbu Semi-Mayor (a)', type: 'number', default: 50 },
                 { id: 'b', label: 'Sumbu Semi-Minor (b)', type: 'number', default: 40 },
                 { id: 'orientation', label: 'Orientasi', type: 'select', options: [
-                    { value: 'horizontal', label: 'Horizontal (Kanan)' },
-                    { value: 'left-branch', label: 'Horizontal (Kiri)' },
+                    { value: 'horizontal', label: 'Horizontal' },
                     { value: 'vertical', label: 'Vertikal' }
                 ], default: 'horizontal'}
             ];
@@ -69,52 +74,64 @@ function getParamDefs(curveType) {
 }
 
 // =====================================================================
-// PRESETS
+// PRESETS (Library Controller)
 // =====================================================================
+/**
+ * [LIBRARY CONTROLLER]
+ * Fungsi getPresets() menyimpan daftar konfigurasi angka siap pakai (preset).
+ * Tujuannya agar pengguna bisa langsung melihat bentuk yang bagus tanpa
+ * menebak-nebak angka.
+ */
 function getPresets(curveType) {
     switch (curveType) {
         case 'circle':
             return [
-                { label: 'Kecil', params: { xc: 0, yc: 0, r: 50, tMin: 0, tMax: 360, delta: 2 } },
-                { label: 'Sedang', params: { xc: 0, yc: 0, r: 120, tMin: 0, tMax: 360, delta: 1 } },
-                { label: 'Besar', params: { xc: 0, yc: 0, r: 200, tMin: 0, tMax: 360, delta: 0.5 } },
-                { label: 'Kanan Atas', params: { xc: 100, yc: 100, r: 80, tMin: 0, tMax: 360, delta: 1 } },
-                { label: 'Setengah', params: { xc: 0, yc: 0, r: 150, tMin: 0, tMax: 180, delta: 1 } },
-                { label: 'Low-Res (Segi)', params: { xc: 0, yc: 0, r: 120, tMin: 0, tMax: 360, delta: 60 } }
+                { label: 'Kecil', params: { xc: 0, yc: 0, r: 50, tMin: 0, tMax: 360, delta: 45 } },
+                { label: 'Sedang', params: { xc: 0, yc: 0, r: 120, tMin: 0, tMax: 360, delta: 18 } },
+                { label: 'Besar', params: { xc: 0, yc: 0, r: 200, tMin: 0, tMax: 360, delta: 15 } },
+                { label: 'Kanan Atas', params: { xc: 100, yc: 100, r: 80, tMin: 0, tMax: 360, delta: 30 } },
+                { label: 'Setengah', params: { xc: 0, yc: 0, r: 150, tMin: 0, tMax: 180, delta: 18 } },
+                { label: 'Low-Res (Segi 8)', params: { xc: 0, yc: 0, r: 120, tMin: 0, tMax: 360, delta: 45 } }
             ];
         case 'ellipse':
             return [
-                { label: 'Lebar', params: { xc: 0, yc: 0, a: 200, b: 80, tMin: 0, tMax: 360, delta: 1 } },
-                { label: 'Tinggi', params: { xc: 0, yc: 0, a: 80, b: 200, tMin: 0, tMax: 360, delta: 1 } },
-                { label: 'Mirip Lingkaran', params: { xc: 0, yc: 0, a: 120, b: 100, tMin: 0, tMax: 360, delta: 1 } },
-                { label: 'Kiri Bawah', params: { xc: -100, yc: -100, a: 150, b: 50, tMin: 0, tMax: 360, delta: 1 } },
-                { label: 'Setengah', params: { xc: 0, yc: 0, a: 180, b: 90, tMin: 0, tMax: 180, delta: 1 } },
-                { label: 'Detail Tinggi', params: { xc: 0, yc: 0, a: 150, b: 100, tMin: 0, tMax: 360, delta: 0.2 } }
+                { label: 'Lebar', params: { xc: 0, yc: 0, a: 200, b: 80, tMin: 0, tMax: 360, delta: 18 } },
+                { label: 'Tinggi', params: { xc: 0, yc: 0, a: 80, b: 200, tMin: 0, tMax: 360, delta: 18 } },
+                { label: 'Mirip Lingkaran', params: { xc: 0, yc: 0, a: 120, b: 100, tMin: 0, tMax: 360, delta: 30 } },
+                { label: 'Kiri Bawah', params: { xc: -100, yc: -100, a: 150, b: 50, tMin: 0, tMax: 360, delta: 30 } },
+                { label: 'Setengah', params: { xc: 0, yc: 0, a: 180, b: 90, tMin: 0, tMax: 180, delta: 18 } },
+                { label: 'Detail Tinggi', params: { xc: 0, yc: 0, a: 150, b: 100, tMin: 0, tMax: 360, delta: 10 } }
             ];
         case 'parabola':
             return [
-                { label: 'Lebar Atas', params: { xc: 0, yc: 0, a: 20, orientation: 'up', tMin: -5, tMax: 5, delta: 0.05 } },
-                { label: 'Sempit Atas', params: { xc: 0, yc: -100, a: 5, orientation: 'up', tMin: -10, tMax: 10, delta: 0.1 } },
-                { label: 'Lebar Bawah', params: { xc: 0, yc: 100, a: 15, orientation: 'down', tMin: -6, tMax: 6, delta: 0.1 } },
-                { label: 'Kanan', params: { xc: -150, yc: 0, a: 10, orientation: 'right', tMin: -8, tMax: 8, delta: 0.1 } },
-                { label: 'Kiri', params: { xc: 150, yc: 0, a: 10, orientation: 'left', tMin: -8, tMax: 8, delta: 0.1 } },
-                { label: 'Titik Rapat', params: { xc: 0, yc: 0, a: 10, orientation: 'up', tMin: -8, tMax: 8, delta: 0.01 } }
+                { label: 'Lebar Atas', params: { xc: 0, yc: 0, a: 20, orientation: 'up', tMin: -5, tMax: 5, delta: 1 } },
+                { label: 'Sempit Atas', params: { xc: 0, yc: -100, a: 5, orientation: 'up', tMin: -10, tMax: 10, delta: 2 } },
+                { label: 'Lebar Bawah', params: { xc: 0, yc: 100, a: 15, orientation: 'down', tMin: -6, tMax: 6, delta: 1.5 } },
+                { label: 'Kanan', params: { xc: -150, yc: 0, a: 10, orientation: 'right', tMin: -7.5, tMax: 7.5, delta: 1.5 } },
+                { label: 'Kiri', params: { xc: 150, yc: 0, a: 10, orientation: 'left', tMin: -7.5, tMax: 7.5, delta: 1.5 } },
+                { label: 'Titik Rapat', params: { xc: 0, yc: 0, a: 10, orientation: 'up', tMin: -8, tMax: 8, delta: 0.5 } }
             ];
         case 'hyperbola':
             return [
-                { label: 'H. Standar', params: { xc: 0, yc: 0, a: 50, b: 30, orientation: 'horizontal', tMin: -60, tMax: 60, delta: 0.5 } },
-                { label: 'H. Lebar', params: { xc: 0, yc: 0, a: 100, b: 40, orientation: 'horizontal', tMin: -70, tMax: 70, delta: 1 } },
-                { label: 'H. Sempit', params: { xc: 0, yc: 0, a: 30, b: 80, orientation: 'horizontal', tMin: -50, tMax: 50, delta: 0.5 } },
-                { label: 'V. Standar', params: { xc: 0, yc: 0, a: 30, b: 50, orientation: 'vertical', tMin: -60, tMax: 60, delta: 0.5 } },
-                { label: 'Cabang Kiri', params: { xc: 0, yc: 0, a: 50, b: 40, orientation: 'left-branch', tMin: -65, tMax: 65, delta: 0.5 } },
-                { label: 'Ultra Detail', params: { xc: 0, yc: 0, a: 40, b: 40, orientation: 'horizontal', tMin: -80, tMax: 80, delta: 0.05 } }
+                { label: 'H. Standar', params: { xc: 0, yc: 0, a: 50, b: 30, orientation: 'horizontal', tMin: -60, tMax: 60, delta: 10 } },
+                { label: 'H. Lebar', params: { xc: 0, yc: 0, a: 100, b: 40, orientation: 'horizontal', tMin: -75, tMax: 75, delta: 15 } },
+                { label: 'H. Sempit', params: { xc: 0, yc: 0, a: 30, b: 80, orientation: 'horizontal', tMin: -50, tMax: 50, delta: 10 } },
+                { label: 'V. Standar', params: { xc: 0, yc: 0, a: 30, b: 50, orientation: 'vertical', tMin: -60, tMax: 60, delta: 10 } },
+                { label: 'H. Jauh', params: { xc: 0, yc: 0, a: 150, b: 40, orientation: 'horizontal', tMin: -60, tMax: 60, delta: 12 } },
+                { label: 'Ultra Detail', params: { xc: 0, yc: 0, a: 40, b: 40, orientation: 'horizontal', tMin: -80, tMax: 80, delta: 5 } }
             ];
     }
 }
 
 // =====================================================================
-// FORM BUILDER
+// FORM BUILDER (UI Controller)
 // =====================================================================
+/**
+ * [UI CONTROLLER]
+ * Fungsi buildForm() bertugas merender (menggambar) kotak input HTML
+ * ke layar berdasarkan data yang diberikan oleh getParamDefs().
+ * Secara dinamis membuat elemen <input> atau <select>.
+ */
 function buildForm(curveType) {
     const params = getParamDefs(curveType);
     paramsContainer.innerHTML = '';
@@ -153,8 +170,13 @@ function buildForm(curveType) {
 }
 
 // =====================================================================
-// PRESET BUILDER
+// PRESET BUILDER (UI Controller)
 // =====================================================================
+/**
+ * [UI CONTROLLER]
+ * Fungsi buildPresets() membuat tombol-tombol HTML untuk setiap preset.
+ * Jika diklik, ia akan memuat parameter ke form, dan langsung memicu proses.
+ */
 function buildPresets(curveType) {
     const presets = getPresets(curveType);
     presetGrid.innerHTML = '';
@@ -216,252 +238,120 @@ function updateAnalysisPanel(curveType, values, points) {
     const totalPoints = dataPoints.length;
     const meta = points.meta || {};
 
-    let equationHTML = '';
-    let propsHTML = '';
-    let derivHTML = '';
-    let geometryHTML = '';
+    let originStory = '';
+    let formulaStory = '';
+    let calcStory = '';
 
     switch (curveType) {
         case 'circle': {
             const r = values.r;
-            equationHTML = `
-                <div class="eq-block">
-                    <span class="eq-label">Persamaan Parametrik:</span>
-                    <div class="eq-formula">$$ x(t) = ${values.xc} + ${r} \\cos(t) $$</div>
-                    <div class="eq-formula">$$ y(t) = ${values.yc} + ${r} \\sin(t) $$</div>
-                </div>
-                <div class="eq-block">
-                    <span class="eq-label">Persamaan Kartesian:</span>
-                    <div class="eq-formula">$$ (x - ${values.xc})^2 + (y - ${values.yc})^2 = ${r}^2 = ${r*r} $$</div>
-                </div>
+            originStory = `Lingkaran terbentuk dengan cara menempatkan sebuah paku di tengah (titik pusat), lalu menarik tali sepanjang <strong>${r} piksel (Jari-jari)</strong>, dan memutarnya satu putaran penuh (360 derajat). Setiap sudut putaran (dari ${values.tMin}° hingga ${values.tMax}°) akan dicatat sebagai satu buah titik di layar. Karena jarak talinya selalu sama, bentuknya bulat sempurna!`;
+            
+            formulaStory = `
+                Secara matematis, komputer menggunakan fungsi Trigonometri untuk menggambar kurva ini:<br>
+                <ul>
+                    <li><strong>Titik Mendatar (X)</strong> = Pusat X + (Jari-jari × Cosinus sudut)</li>
+                    <li><strong>Titik Tegak (Y)</strong> = Pusat Y + (Jari-jari × Sinus sudut)</li>
+                </ul>
+                <div class="eq-formula">$$ x = ${values.xc} + ${r} \\cos(t) \\quad \\text{dan} \\quad y = ${values.yc} + ${r} \\sin(t) $$</div>
             `;
-            derivHTML = `
-                <div class="eq-block">
-                    <span class="eq-label">Turunan Pertama:</span>
-                    <div class="eq-formula">$$ \\frac{dx}{dt} = -${r} \\sin(t) $$</div>
-                    <div class="eq-formula">$$ \\frac{dy}{dt} = ${r} \\cos(t) $$</div>
-                </div>
-                <div class="eq-block">
-                    <span class="eq-label">Kecepatan Parametrik:</span>
-                    <div class="eq-formula">$$ |v(t)| = \\sqrt{\\left(\\frac{dx}{dt}\\right)^2 + \\left(\\frac{dy}{dt}\\right)^2} = ${r} \\text{ (konstan)} $$</div>
-                </div>
-            `;
-            geometryHTML = `
-                <div class="prop-grid">
-                    <div class="prop-item"><span class="prop-key">Keliling</span><span class="prop-val">${fmt(meta.keliling, 2)} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Luas</span><span class="prop-val">${fmt(meta.luas, 2)} px²</span></div>
-                    <div class="prop-item"><span class="prop-key">Kelengkungan κ</span><span class="prop-val">${fmt(meta.curvatureConst, 6)} (konstan)</span></div>
-                    <div class="prop-item"><span class="prop-key">Radius Kelengkungan</span><span class="prop-val">${fmt(meta.radiusKelengkungan, 2)} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Eksentrisitas</span><span class="prop-val">0 (lingkaran sempurna)</span></div>
-                    <div class="prop-item"><span class="prop-key">Busur Terukur</span><span class="prop-val">${fmt(meta.totalArcLength, 2)} px</span></div>
-                </div>
-            `;
-            propsHTML = `
-                <div class="prop-grid">
-                    <div class="prop-item"><span class="prop-key">Pusat</span><span class="prop-val">(${values.xc}, ${values.yc})</span></div>
-                    <div class="prop-item"><span class="prop-key">Jari-jari</span><span class="prop-val">${r} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Diameter</span><span class="prop-val">${r * 2} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Bounding Box</span><span class="prop-val">[${values.xc - r}, ${values.xc + r}] × [${values.yc - r}, ${values.yc + r}]</span></div>
-                </div>
+
+            calcStory = `
+                Mari kita simulasikan! Bayangkan komputer sedang memproses sudut <strong>0 derajat (Kanan lurus)</strong>:<br>
+                <ol>
+                    <li>Sudut 0 derajat berarti <code>Cos(0) = 1</code> dan <code>Sin(0) = 0</code>.</li>
+                    <li><strong>Hitung X:</strong> Titik pusat (${values.xc}) + (${r} × 1) = <strong>${values.xc + r}</strong>.</li>
+                    <li><strong>Hitung Y:</strong> Titik pusat (${values.yc}) + (${r} × 0) = <strong>${values.yc}</strong>.</li>
+                </ol>
+                Jadi, komputer akan menaruh satu titik di koordinat <strong>(${values.xc + r}, ${values.yc})</strong>. Proses ini diulang-ulang sampai titik-titik tersebut menyatu membentuk lingkaran.
             `;
             break;
         }
         case 'ellipse': {
             const a = values.a, b = values.b;
-            equationHTML = `
-                <div class="eq-block">
-                    <span class="eq-label">Persamaan Parametrik:</span>
-                    <div class="eq-formula">$$ x(t) = ${values.xc} + ${a} \\cos(t) $$</div>
-                    <div class="eq-formula">$$ y(t) = ${values.yc} + ${b} \\sin(t) $$</div>
-                </div>
-                <div class="eq-block">
-                    <span class="eq-label">Persamaan Kartesian:</span>
-                    <div class="eq-formula">$$ \\frac{(x - ${values.xc})^2}{${a}^2} + \\frac{(y - ${values.yc})^2}{${b}^2} = 1 $$</div>
-                </div>
+            originStory = `Elips sebenarnya adalah lingkaran yang "ditarik" memanjang atau meninggi. Kalau lingkaran punya satu jari-jari tetap, Elips punya dua: <strong>Lebar mendatar (${a} piksel)</strong> dan <strong>Tinggi vertikal (${b} piksel)</strong>. Karena tarikannya tidak seimbang, bentuknya jadi lonjong.`;
+            
+            formulaStory = `
+                Komputer menggunakan rumus yang mirip lingkaran, tapi dikali dengan nilai tarikan yang berbeda:<br>
+                <ul>
+                    <li><strong>Titik Mendatar (X)</strong> = Pusat X + (Tarikan Mendatar × Cosinus sudut)</li>
+                    <li><strong>Titik Tegak (Y)</strong> = Pusat Y + (Tarikan Vertikal × Sinus sudut)</li>
+                </ul>
+                <div class="eq-formula">$$ x = ${values.xc} + ${a} \\cos(t) \\quad \\text{dan} \\quad y = ${values.yc} + ${b} \\sin(t) $$</div>
             `;
-            derivHTML = `
-                <div class="eq-block">
-                    <span class="eq-label">Turunan Pertama:</span>
-                    <div class="eq-formula">$$ \\frac{dx}{dt} = -${a} \\sin(t) $$</div>
-                    <div class="eq-formula">$$ \\frac{dy}{dt} = ${b} \\cos(t) $$</div>
-                </div>
-                <div class="eq-block">
-                    <span class="eq-label">Kecepatan Parametrik:</span>
-                    <div class="eq-formula">$$ |v(t)| = \\sqrt{${a}^2\\sin^2(t) + ${b}^2\\cos^2(t)} \\text{ (bervariasi)} $$</div>
-                </div>
-                <div class="eq-block">
-                    <span class="eq-label">Kelengkungan:</span>
-                    <div class="eq-formula">$$ \\kappa(t) = \\frac{${a} \\cdot ${b}}{(${a}^2\\sin^2(t) + ${b}^2\\cos^2(t))^{3/2}} $$</div>
-                </div>
-            `;
-            geometryHTML = `
-                <div class="prop-grid">
-                    <div class="prop-item"><span class="prop-key">Keliling (Ramanujan)</span><span class="prop-val">≈ ${fmt(meta.keliling, 2)} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Luas</span><span class="prop-val">${fmt(meta.luas, 2)} px²</span></div>
-                    <div class="prop-item"><span class="prop-key">Eksentrisitas</span><span class="prop-val">${fmt(meta.eksentrisitas, 6)}</span></div>
-                    <div class="prop-item"><span class="prop-key">Jarak Fokus (c)</span><span class="prop-val">${fmt(meta.jarakFokus, 2)} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Fokus 1</span><span class="prop-val">(${fmt(meta.fokus1?.x, 1)}, ${fmt(meta.fokus1?.y, 1)})</span></div>
-                    <div class="prop-item"><span class="prop-key">Fokus 2</span><span class="prop-val">(${fmt(meta.fokus2?.x, 1)}, ${fmt(meta.fokus2?.y, 1)})</span></div>
-                    <div class="prop-item"><span class="prop-key">Busur Terukur</span><span class="prop-val">${fmt(meta.totalArcLength, 2)} px</span></div>
-                </div>
-            `;
-            propsHTML = `
-                <div class="prop-grid">
-                    <div class="prop-item"><span class="prop-key">Pusat</span><span class="prop-val">(${values.xc}, ${values.yc})</span></div>
-                    <div class="prop-item"><span class="prop-key">Semi-Mayor</span><span class="prop-val">${meta.semiMajor} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Semi-Minor</span><span class="prop-val">${meta.semiMinor} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Rasio a:b</span><span class="prop-val">${fmt(a/b, 3)}</span></div>
-                </div>
+
+            calcStory = `
+                Bayangkan komputer memproses sudut <strong>90 derajat (Tepat di atas)</strong>:<br>
+                <ol>
+                    <li>Sudut 90 derajat berarti <code>Cos(90) = 0</code> dan <code>Sin(90) = 1</code>.</li>
+                    <li><strong>Hitung X:</strong> Titik pusat (${values.xc}) + (${a} × 0) = <strong>${values.xc}</strong>.</li>
+                    <li><strong>Hitung Y:</strong> Titik pusat (${values.yc}) + (${b} × 1) = <strong>${values.yc + b}</strong>.</li>
+                </ol>
+                Komputer pun menggambar titik puncak elips tersebut di posisi <strong>(${values.xc}, ${values.yc + b})</strong>.
             `;
             break;
         }
         case 'parabola': {
             const a = values.a;
-            const ori = values.orientation;
-            let eqX = '', eqY = '', dX = '', dY = '';
+            originStory = `Parabola itu seperti lintasan bola yang dilempar ke udara lalu jatuh kembali. Kurva ini punya satu titik "Puncak/Dasar", lalu membuka ke satu arah (atas/bawah/kiri/kanan) sampai tak terhingga. Tingkat "kelebaran" bukaan ini ditentukan oleh nilai fokus sebesar <strong>${a}</strong>. Semakin besar nilainya, semakin mangkoknya terbuka lebar.`;
+            
+            formulaStory = `
+                Berbeda dengan lingkaran yang pakai Cos/Sin, parabola menggunakan perhitungan "Kuadrat" (pangkat dua) pada salah satu sumbunya saja:<br>
+                <ul>
+                    <li>Sumbu lintasan (linier) = Bergerak lurus biasa (dikalikan <strong>waktu/t</strong>).</li>
+                    <li>Sumbu lengkungan (kuadratik) = Semakin lama bergeraknya semakin cepat melengkung (dikalikan <strong>waktu kuadrat / t²</strong>).</li>
+                </ul>
+            `;
 
-            switch (ori) {
-                case 'right':
-                    eqX = `$$ x(t) = ${values.xc} + ${a} t^2 $$`; eqY = `$$ y(t) = ${values.yc} + ${2*a} t $$`;
-                    dX = `$$ \\frac{dx}{dt} = ${2*a} t $$`; dY = `$$ \\frac{dy}{dt} = ${2*a} $$`;
-                    break;
-                case 'left':
-                    eqX = `$$ x(t) = ${values.xc} - ${a} t^2 $$`; eqY = `$$ y(t) = ${values.yc} + ${2*a} t $$`;
-                    dX = `$$ \\frac{dx}{dt} = -${2*a} t $$`; dY = `$$ \\frac{dy}{dt} = ${2*a} $$`;
-                    break;
-                case 'up':
-                    eqX = `$$ x(t) = ${values.xc} + ${2*a} t $$`; eqY = `$$ y(t) = ${values.yc} + ${a} t^2 $$`;
-                    dX = `$$ \\frac{dx}{dt} = ${2*a} $$`; dY = `$$ \\frac{dy}{dt} = ${2*a} t $$`;
-                    break;
-                case 'down':
-                    eqX = `$$ x(t) = ${values.xc} + ${2*a} t $$`; eqY = `$$ y(t) = ${values.yc} - ${a} t^2 $$`;
-                    dX = `$$ \\frac{dx}{dt} = ${2*a} $$`; dY = `$$ \\frac{dy}{dt} = -${2*a} t $$`;
-                    break;
-            }
-
-            equationHTML = `
-                <div class="eq-block">
-                    <span class="eq-label">Persamaan Parametrik (${ori.toUpperCase()}):</span>
-                    <div class="eq-formula">${eqX}</div>
-                    <div class="eq-formula">${eqY}</div>
-                </div>
-            `;
-            derivHTML = `
-                <div class="eq-block">
-                    <span class="eq-label">Turunan Pertama:</span>
-                    <div class="eq-formula">${dX}</div>
-                    <div class="eq-formula">${dY}</div>
-                </div>
-                <div class="eq-block">
-                    <span class="eq-label">Kelengkungan:</span>
-                    <div class="eq-formula">$$ \\kappa(t) = \\frac{1}{${2*a} (1 + t^2)^{3/2}} $$</div>
-                    <div class="eq-formula">$$ \\kappa(0) = ${fmt(meta.kelengkunganVertex, 6)} \\text{ (di vertex)} $$</div>
-                </div>
-            `;
-            geometryHTML = `
-                <div class="prop-grid">
-                    <div class="prop-item"><span class="prop-key">Vertex</span><span class="prop-val">(${meta.vertex?.x}, ${meta.vertex?.y})</span></div>
-                    <div class="prop-item"><span class="prop-key">Fokus</span><span class="prop-val">(${meta.fokus?.x}, ${meta.fokus?.y})</span></div>
-                    <div class="prop-item"><span class="prop-key">Latus Rectum</span><span class="prop-val">${fmt(meta.latusRectum, 2)} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Radius Kelengkungan (vertex)</span><span class="prop-val">${fmt(meta.radiusKelengkunganVertex, 2)} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Busur Terukur</span><span class="prop-val">${fmt(meta.totalArcLength, 2)} px</span></div>
-                </div>
-            `;
-            propsHTML = `
-                <div class="prop-grid">
-                    <div class="prop-item"><span class="prop-key">Parameter (a)</span><span class="prop-val">${a}</span></div>
-                    <div class="prop-item"><span class="prop-key">Orientasi</span><span class="prop-val">${ori.toUpperCase()}</span></div>
-                </div>
+            calcStory = `
+                Anggaplah arah kurva menghadap ke atas, dan kita hitung pada saat "waktu (t)" berjalan <strong>2 detik</strong>:<br>
+                <ol>
+                    <li><strong>Hitung X (Bergerak datar):</strong> Pusat (${values.xc}) + (2 × Fokus ${a} × t=2) = <strong>${values.xc + (4 * a)}</strong>.</li>
+                    <li><strong>Hitung Y (Melengkung naik):</strong> Pusat (${values.yc}) + (Fokus ${a} × t²=4) = <strong>${values.yc + (a * 4)}</strong>.</li>
+                </ol>
+                Itulah alasan kenapa parabola bentuknya seperti mangkok terbuka, karena sumbu Y-nya melesat jauh lebih cepat (pangkat dua) daripada sumbu X-nya.
             `;
             break;
         }
         case 'hyperbola': {
             const a = values.a, b = values.b;
-            const ori = values.orientation;
-            let mainEq = '';
+            originStory = `Hiperbola adalah kurva yang paling unik. Bentuknya seperti dua parabola yang saling membelakangi dan menjauh sampai ke ujung alam semesta. Kurva ini tidak pernah bersentuhan atau tertutup. Jarak dari pusat ke bukaan terdekatnya adalah <strong>${a} piksel</strong>.`;
+            
+            formulaStory = `
+                Hiperbola menggunakan fungsi trigonometri Sekan (Sec) dan Tangen (Tan). Karena sifat fungsi ini meledak tak terbatas pada sudut tertentu, kurvanya ikut menjauh tanpa batas:<br>
+                <ul>
+                    <li>Sumbu yang terbelah (Transversal) dikalikan fungsi Sekan (Sec).</li>
+                    <li>Sumbu sebelahnya (Konjugat) dikalikan fungsi Tangen (Tan).</li>
+                </ul>
+                <div class="eq-formula">$$ x = ${values.xc} \\pm ${a} \\sec(t) \\quad \\text{dan} \\quad y = ${values.yc} + ${b} \\tan(t) $$</div>
+            `;
 
-            if (ori === 'vertical') {
-                mainEq = `
-                    <div class="eq-formula">$$ x(t) = ${values.xc} + ${b} \\tan(t) $$</div>
-                    <div class="eq-formula">$$ y(t) = ${values.yc} \\pm ${a} \\sec(t) $$</div>
-                `;
-            } else {
-                mainEq = `
-                    <div class="eq-formula">$$ x(t) = ${values.xc} \\pm ${a} \\sec(t) $$</div>
-                    <div class="eq-formula">$$ y(t) = ${values.yc} + ${b} \\tan(t) $$</div>
-                `;
-            }
-
-            equationHTML = `
-                <div class="eq-block">
-                    <span class="eq-label">Persamaan Parametrik (${ori.toUpperCase()}):</span>
-                    ${mainEq}
-                </div>
-                <div class="eq-block">
-                    <span class="eq-label">Persamaan Kartesian:</span>
-                    <div class="eq-formula">${ori !== 'vertical' 
-                        ? `$$ \\frac{(x - ${values.xc})^2}{${a}^2} - \\frac{(y - ${values.yc})^2}{${b}^2} = 1 $$` 
-                        : `$$ \\frac{(y - ${values.yc})^2}{${a}^2} - \\frac{(x - ${values.xc})^2}{${b}^2} = 1 $$`}</div>
-                </div>
-            `;
-            derivHTML = `
-                <div class="eq-block">
-                    <span class="eq-label">Turunan Pertama:</span>
-                    <div class="eq-formula">${ori !== 'vertical' 
-                        ? `$$ \\frac{dx}{dt} = ${a} \\sec(t)\\tan(t) $$` 
-                        : `$$ \\frac{dx}{dt} = ${b} \\sec^2(t) $$`}</div>
-                    <div class="eq-formula">${ori !== 'vertical' 
-                        ? `$$ \\frac{dy}{dt} = ${b} \\sec^2(t) $$` 
-                        : `$$ \\frac{dy}{dt} = ${a} \\sec(t)\\tan(t) $$`}</div>
-                </div>
-            `;
-            geometryHTML = `
-                <div class="prop-grid">
-                    <div class="prop-item"><span class="prop-key">Eksentrisitas (e)</span><span class="prop-val">${fmt(meta.eksentrisitas, 6)}</span></div>
-                    <div class="prop-item"><span class="prop-key">Jarak Fokus (c)</span><span class="prop-val">${fmt(meta.jarakFokus, 2)} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Fokus 1</span><span class="prop-val">(${fmt(meta.fokus1?.x, 1)}, ${fmt(meta.fokus1?.y, 1)})</span></div>
-                    <div class="prop-item"><span class="prop-key">Fokus 2</span><span class="prop-val">(${fmt(meta.fokus2?.x, 1)}, ${fmt(meta.fokus2?.y, 1)})</span></div>
-                    <div class="prop-item"><span class="prop-key">Slope Asimtot</span><span class="prop-val">±${fmt(meta.asimtotSlope, 4)}</span></div>
-                    <div class="prop-item"><span class="prop-key">Busur Terukur</span><span class="prop-val">${fmt(meta.totalArcLength, 2)} px</span></div>
-                </div>
-            `;
-            propsHTML = `
-                <div class="prop-grid">
-                    <div class="prop-item"><span class="prop-key">Pusat</span><span class="prop-val">(${values.xc}, ${values.yc})</span></div>
-                    <div class="prop-item"><span class="prop-key">Semi-Transversal (a)</span><span class="prop-val">${a} px</span></div>
-                    <div class="prop-item"><span class="prop-key">Semi-Konjugat (b)</span><span class="prop-val">${b} px</span></div>
-                </div>
+            calcStory = `
+                Sebagai contoh, titik awal persis di puncak lekukan (sudut 0 derajat):<br>
+                <ol>
+                    <li>Pada 0 derajat, <code>Sec(0) = 1</code> dan <code>Tan(0) = 0</code>.</li>
+                    <li><strong>Hitung X:</strong> Pusat (${values.xc}) ± (${a} × 1) = <strong>Kanan: ${values.xc + a}, Kiri: ${values.xc - a}</strong>.</li>
+                    <li><strong>Hitung Y:</strong> Pusat (${values.yc}) + (${b} × 0) = <strong>${values.yc}</strong>.</li>
+                </ol>
+                Ini adalah titik terdekat kedua kurva yang saling berhadapan sebelum mereka melebar saling menjauh tak berujung.
             `;
             break;
         }
     }
 
-    // Render panel utama
+    // Render panel utama dengan struktur cerita
     const html = `
-        <div class="analysis-section">
-            <h4><span class="section-icon">📐</span> Persamaan</h4>
-            ${equationHTML}
+        <div class="edu-section">
+            <h4>🌟 Dari Mana Titik-Titik Ini Berasal?</h4>
+            <p>${originStory}</p>
         </div>
-        <div class="analysis-section">
-            <h4><span class="section-icon">📊</span> Turunan & Kelengkungan</h4>
-            ${derivHTML}
+        <div class="edu-section">
+            <h4>📐 Rumus yang Digunakan</h4>
+            <p>${formulaStory}</p>
         </div>
-        <div class="analysis-section">
-            <h4><span class="section-icon">📏</span> Properti Kurva</h4>
-            ${propsHTML}
-        </div>
-        <div class="analysis-section">
-            <h4><span class="section-icon">🔬</span> Geometri Lanjutan</h4>
-            ${geometryHTML}
-        </div>
-        <div class="analysis-section">
-            <h4><span class="section-icon">⚙️</span> Parameter Rendering</h4>
-            <div class="prop-grid">
-                <div class="prop-item"><span class="prop-key">Rentang t</span><span class="prop-val">${values.tMin} → ${values.tMax}</span></div>
-                <div class="prop-item"><span class="prop-key">Interval Δ</span><span class="prop-val">${values.delta}</span></div>
-                <div class="prop-item"><span class="prop-key">Total Titik</span><span class="prop-val">${totalPoints}</span></div>
-                <div class="prop-item"><span class="prop-key">Mode Render</span><span class="prop-val">Titik (Dots)</span></div>
-            </div>
+        <div class="edu-section">
+            <h4>🧮 Contoh Langkah Perhitungan</h4>
+            <p>${calcStory}</p>
         </div>
     `;
     analysisContent.innerHTML = html;
@@ -474,8 +364,14 @@ function updateAnalysisPanel(curveType, values, points) {
 }
 
 // =====================================================================
-// TABEL PERHITUNGAN DETAIL (SAMPEL)
+// TABEL PERHITUNGAN DETAIL (Data Render Controller)
 // =====================================================================
+/**
+ * [DATA RENDER CONTROLLER]
+ * Fungsi updateCalcTable() menerima kumpulan data koordinat (dataPoints)
+ * dari Main Controller, lalu menyaringnya (maksimal 20 sampel) untuk 
+ * dirender menjadi baris tabel HTML agar mudah dipelajari.
+ */
 function updateCalcTable(dataPoints, curveType) {
     if (!calcTableBody) return;
 
@@ -529,7 +425,7 @@ function updateCalcTable(dataPoints, curveType) {
 }
 
 // =====================================================================
-// EVENT LISTENERS
+// EVENT LISTENERS (Main Controller / Hub)
 // =====================================================================
 
 // Perbarui form saat memilih jenis kurva lain
@@ -543,6 +439,14 @@ curveSelect.addEventListener('change', (e) => {
     if (tableContainer) tableContainer.style.display = 'none';
 });
 
+/**
+ * [MAIN EVENT CONTROLLER / HUB]
+ * Ini adalah jantung aplikasi. Saat tombol "Proses Gambar" diklik:
+ * 1. Ia mengambil nilai input dari Form.
+ * 2. Ia memanggil fungsi matematika yang tepat dari geometryCalc.js.
+ * 3. Ia meneruskan data koordinat ke fitur tabel dan penjelasan matematis.
+ * 4. Dan paling penting, ia menyuruh canvasAnimator.js untuk mulai menggambar!
+ */
 // Klik Proses Gambar
 btnProcess.addEventListener('click', () => {
     const type = curveSelect.value;
@@ -563,6 +467,27 @@ btnProcess.addEventListener('click', () => {
         case 'hyperbola':
             points = calculateHyperbola(vals.xc, vals.yc, vals.a, vals.b, vals.delta, vals.tMin, vals.tMax, vals.orientation);
             break;
+    }
+
+    // Hitung bounding box secara dinamis jika belum ada (untuk fitur Auto-Zoom)
+    if (points && points.length > 0) {
+        if (!points.meta) points.meta = {};
+        if (!points.meta.boundingBox) {
+            let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+            points.forEach(p => {
+                if (p.break) return; // lewati titik putus pada hiperbola
+                if (p.x < minX) minX = p.x;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+            });
+            // Berikan margin ekstra jika ukurannya terlalu kecil/datar
+            if (minX !== Infinity) {
+                if (maxX - minX < 1) { maxX += 5; minX -= 5; }
+                if (maxY - minY < 1) { maxY += 5; minY -= 5; }
+                points.meta.boundingBox = { xMin: minX, xMax: maxX, yMin: minY, yMax: maxY };
+            }
+        }
     }
 
     // Update panel analisis detail

@@ -9,8 +9,13 @@ const ctx = canvas.getContext('2d');
 let animationFrameId = null;
 
 // =====================================================================
-// TRANSFORM STATE (ZOOM & PAN)
+// TRANSFORM STATE (Zoom & Pan Controller)
 // =====================================================================
+/**
+ * [ZOOM & PAN CONTROLLER]
+ * Menyimpan status pergeseran (panning) dan pembesaran (zooming) kanvas.
+ * Variabel ini digunakan untuk memanipulasi view pengguna secara interaktif.
+ */
 let currentScale = 1;
 let offsetX = 0;
 let offsetY = 0;
@@ -20,10 +25,11 @@ let dragStartY = 0;
 let cachedPointsArray = null;
 
 // =====================================================================
-// COORDINATE MAPPING (AKURAT & VALIDASI)
+// COORDINATE MAPPING (Coordinate Controller)
 // =====================================================================
 /**
- * Memetakan koordinat KARTESIAN MATEMATIKA ke sistem KOORDINAT PIKSEL LAYAR
+ * [COORDINATE CONTROLLER]
+ * Memetakan koordinat KARTESIAN MATEMATIKA ke sistem KOORDINAT PIKSEL LAYAR.
  * 
  * Transformasi Koordinat:
  *   px = w/2 + x    ← Geser origin ke tengah horizontal (left/right)
@@ -54,54 +60,84 @@ function mapCoordinate(x, y, w, h) {
 }
 
 // =====================================================================
-// GRID RENDERING
+// GRID RENDERING (Grid Controller)
 // =====================================================================
 /**
- * Menggambar latar belakang kanvas berupa grid transparan,
- * sumbu X/Y tebal, tick marks, dan label nilai
+ * [GRID CONTROLLER]
+ * Fungsi drawGrid() bertugas merender garis-garis kotak (millimeter block)
+ * sebagai latar belakang kanvas. Skala grid ini (logicalMajorStep) akan 
+ * membesar/mengecil secara otomatis berdasarkan level Zoom pengguna.
  */
 function drawGrid(ctx, w, h) {
     ctx.clearRect(0, 0, w, h);
 
-    // Grid tipis transparan (Gelap untuk latar putih)
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
-    ctx.lineWidth = 1;
-    ctx.font = '9px Inter, sans-serif';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
-
-    const baseStep = 30;       // Grid setiap 30px secara logis
-    const baseTickStep = 60;   // Angka label setiap 60px
-
-    // Adaptive step based on scale
-    let logicalStep = baseStep / currentScale;
-    let logicalTickStep = baseTickStep / currentScale;
+    // Konfigurasi Sub-Grid (Kotak Kecil / Milimeter)
+    const baseMajorSize = 80; // Target ukuran fisik 1 kotak besar (px)
     
-    // To make it look nice, round logical step to nice numbers (1, 2, 5, 10, etc)
-    const niceSteps = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+    // Adaptive step based on scale
+    let logicalMajorStep = baseMajorSize / currentScale;
+    
+    // Round to nice numbers
+    const niceSteps = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
     let selectedStep = niceSteps[0];
     for (let s of niceSteps) {
-        if (s >= baseStep / currentScale) {
+        if (s >= logicalMajorStep) {
             selectedStep = s;
             break;
         }
     }
-    logicalStep = selectedStep;
-    logicalTickStep = logicalStep * 2;
-
-    const physicalStep = logicalStep * currentScale;
-
+    logicalMajorStep = selectedStep;
+    const logicalMinorStep = logicalMajorStep / 10; // 1 kotak besar dipecah 10 kotak kecil
+    
     // Center screen in mathematical coordinates
     const centerX = -offsetX / currentScale;
     const centerY = offsetY / currentScale;
     
-    const startX = Math.floor((centerX - w/2 / currentScale) / logicalStep) * logicalStep;
-    const endX = Math.ceil((centerX + w/2 / currentScale) / logicalStep) * logicalStep;
+    // Calculate visible boundaries in mathematical coordinates
+    const startX = Math.floor((centerX - w/2 / currentScale) / logicalMinorStep) * logicalMinorStep;
+    const endX = Math.ceil((centerX + w/2 / currentScale) / logicalMinorStep) * logicalMinorStep;
     
-    const startY = Math.floor((centerY - h/2 / currentScale) / logicalStep) * logicalStep;
-    const endY = Math.ceil((centerY + h/2 / currentScale) / logicalStep) * logicalStep;
+    const startY = Math.floor((centerY - h/2 / currentScale) / logicalMinorStep) * logicalMinorStep;
+    const endY = Math.ceil((centerY + h/2 / currentScale) / logicalMinorStep) * logicalMinorStep;
 
-    // Grid vertikal
-    for (let x = startX; x <= endX; x += logicalStep) {
+    ctx.font = '10px Inter, sans-serif';
+
+    // 1. Gambar MINOR GRID (Garis Tipis)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.03)'; // Sangat transparan
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    for (let x = startX; x <= endX; x += logicalMinorStep) {
+        // Skip jika ini garis major
+        if (Math.abs(x % logicalMajorStep) < logicalMinorStep * 0.1) continue;
+        const px = w/2 + (x * currentScale) + offsetX;
+        if (px < 0 || px > w) continue;
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, h);
+    }
+    for (let y = startY; y <= endY; y += logicalMinorStep) {
+        // Skip jika ini garis major
+        if (Math.abs(y % logicalMajorStep) < logicalMinorStep * 0.1) continue;
+        const py = h/2 - (y * currentScale) + offsetY;
+        if (py < 0 || py > h) continue;
+        ctx.moveTo(0, py);
+        ctx.lineTo(w, py);
+    }
+    ctx.stroke();
+
+    // 2. Gambar MAJOR GRID (Garis Sedang & Label Angka)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)'; // Lebih tegas
+    ctx.lineWidth = 1;
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; // Warna teks
+    
+    // Label offset calculation to keep them on screen
+    const pyZero = h/2 + offsetY;
+    const pyLabel = pyZero > 15 && pyZero < h - 15 ? pyZero : (pyZero <= 15 ? 15 : h - 15);
+    
+    const pxZero = w/2 + offsetX;
+    const pxLabel = pxZero > 25 && pxZero < w - 25 ? pxZero : (pxZero <= 25 ? 25 : w - 25);
+
+    // Vertical Major Lines & X-Axis Labels
+    for (let x = Math.floor(startX/logicalMajorStep)*logicalMajorStep; x <= endX; x += logicalMajorStep) {
         const px = w/2 + (x * currentScale) + offsetX;
         if (px < 0 || px > w) continue;
         
@@ -110,25 +146,23 @@ function drawGrid(ctx, w, h) {
         ctx.lineTo(px, h);
         ctx.stroke();
 
-        if (Math.abs(x % logicalTickStep) < logicalStep * 0.1 && Math.abs(x) > 0.01) {
-            const pyZero = h/2 + offsetY;
-            const pyDraw = pyZero > 10 && pyZero < h - 10 ? pyZero : (pyZero <= 10 ? 10 : h - 10);
-            
-            // Format angka untuk membuang desimal yang berlebihan akibat precision issue
+        if (Math.abs(x) > 0.001) { // Jangan label 0 di sini, nanti di titik O
             let valText = Number(x.toPrecision(10)).toString();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillText(valText, px + 2, pyDraw - 5);
+            // Gambar tick mark kecil di sumbu Y (pyLabel)
             ctx.beginPath();
-            ctx.moveTo(px, pyDraw - 3);
-            ctx.lineTo(px, pyDraw + 3);
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.moveTo(px, pyLabel - 4);
+            ctx.lineTo(px, pyLabel + 4);
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.stroke();
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+            
+            // Tulis angka X
+            ctx.fillText(valText, px + 4, pyLabel - 6);
         }
     }
 
-    // Grid horizontal
-    for (let y = startY; y <= endY; y += logicalStep) {
+    // Horizontal Major Lines & Y-Axis Labels
+    for (let y = Math.floor(startY/logicalMajorStep)*logicalMajorStep; y <= endY; y += logicalMajorStep) {
         const py = h/2 - (y * currentScale) + offsetY;
         if (py < 0 || py > h) continue;
 
@@ -137,55 +171,52 @@ function drawGrid(ctx, w, h) {
         ctx.lineTo(w, py);
         ctx.stroke();
 
-        if (Math.abs(y % logicalTickStep) < logicalStep * 0.1 && Math.abs(y) > 0.01) {
-            const pxZero = w/2 + offsetX;
-            const pxDraw = pxZero > 10 && pxZero < w - 20 ? pxZero : (pxZero <= 10 ? 10 : w - 20);
-            
+        if (Math.abs(y) > 0.001) {
             let valText = Number(y.toPrecision(10)).toString();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            ctx.fillText(valText, pxDraw + 5, py - 2);
+            // Tick mark
             ctx.beginPath();
-            ctx.moveTo(pxDraw - 3, py);
-            ctx.lineTo(pxDraw + 3, py);
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+            ctx.moveTo(pxLabel - 4, py);
+            ctx.lineTo(pxLabel + 4, py);
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
             ctx.stroke();
-            ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
+            
+            // Tulis angka Y
+            ctx.fillText(valText, pxLabel + 6, py - 3);
         }
     }
 
-    // Sumbu X utama
-    const pyZero = h / 2 + offsetY;
+    // 3. GAMBAR SUMBU PUSAT X & Y (Tebal)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
+    ctx.lineWidth = 2;
+    
+    // Sumbu X
     if (pyZero >= 0 && pyZero <= h) {
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(0, pyZero);
         ctx.lineTo(w, pyZero);
         ctx.stroke();
-        ctx.font = '11px Inter, sans-serif';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillText('X', w - 15, pyZero - 8);
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillText('X', w - 15, pyZero - 10);
     }
-
-    // Sumbu Y utama
-    const pxZero = w / 2 + offsetX;
+    
+    // Sumbu Y
     if (pxZero >= 0 && pxZero <= w) {
-        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
-        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(pxZero, 0);
         ctx.lineTo(pxZero, h);
         ctx.stroke();
-        ctx.font = '11px Inter, sans-serif';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillText('Y', pxZero + 8, 14);
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillText('Y', pxZero + 10, 15);
     }
 
-    // Label Origin
+    // Titik Pusat Origin (O)
     if (pxZero >= 0 && pxZero <= w && pyZero >= 0 && pyZero <= h) {
-        ctx.font = '9px Inter, sans-serif';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-        ctx.fillText('O', pxZero + 4, pyZero + 12);
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillText('0', pxZero - 12, pyZero + 14);
     }
 }
 
@@ -344,8 +375,13 @@ function drawFocusMarker(ctx, fx, fy, w, h, label) {
 // ANIMASI UTAMA - RENDER TITIK-TITIK (DOTS)
 // =====================================================================
 /**
- * Fungsi utama render animasi kurva sebagai TITIK-TITIK (DOTS)
- * Setiap titik dirender sebagai lingkaran kecil (filled arc)
+ * [ANIMATION & RENDER CONTROLLER]
+ * Fungsi animateCurve() adalah otak dari animasi penggambaran kurva.
+ * Ia menerima titik-titik dari geometryCalc.js, lalu memanggil fungsi 
+ * mapCoordinate() untuk mengubahnya ke koordinat layar, dan akhirnya
+ * menggambarnya satu per satu dengan efek animasi requestAnimationFrame.
+ *
+ * Menerima array points dan melakukan animasi rendering titik-titik
  * dengan warna gradient berdasarkan progress parameter t
  */
 function animateCurve(pointsArray) {
@@ -445,8 +481,10 @@ function animateCurve(pointsArray) {
         while (currentIdx < totalPoints && drawnCount < dotsPerFrame) {
             const pt = pointsArray[currentIdx];
 
-            // Skip break markers
+            // Skip break markers and reset line connection
             if (pt.break) {
+                lastPx = null;
+                lastPy = null;
                 currentIdx++;
                 continue;
             }
@@ -472,10 +510,10 @@ function animateCurve(pointsArray) {
                 ctx.stroke();
             }
 
-            // Ukuran titik AKURAT berdasarkan speed (jika tersedia) - lebih besar untuk background terang
+            // Ukuran titik AKURAT berdasarkan speed (jika tersedia)
             const dotSize = pt.speed !== undefined
-                ? getPointSize(pt.speed, 2.5, 4.5)
-                : 3.0;
+                ? getPointSize(pt.speed, 4.0, 6.0)
+                : 5.0;
 
             // Warna titik berdasarkan progress parameter t (CLEAN, SOLID, TANPA GLOW)
             const color = getPointColor(progress);
@@ -647,7 +685,7 @@ function redrawCanvas() {
             ctx.stroke();
         }
 
-        const dotSize = pt.speed !== undefined ? getPointSize(pt.speed, 2.5, 4.5) : 3.0;
+        const dotSize = pt.speed !== undefined ? getPointSize(pt.speed, 4.0, 6.0) : 5.0;
         const progress = i / Math.max(1, cachedPointsArray.length - 1);
         const color = getPointColor(progress);
         
