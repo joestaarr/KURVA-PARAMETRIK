@@ -552,7 +552,7 @@ function animateCurve(pointsArray) {
         // Update Status dengan pesan yang lebih deskriptif
         const pct = Math.floor((renderedDataIdx / totalDataPoints) * 100);
         statusText.textContent = `📍 Merender titik... ${renderedDataIdx}/${totalDataPoints} (${pct}%)`;
-        statusText.style.color = '#ffd700';
+        statusText.style.color = '#d97706'; // Darker amber for contrast
 
         if (currentIdx < totalPoints) {
             animationFrameId = requestAnimationFrame(drawNextDots);
@@ -560,7 +560,7 @@ function animateCurve(pointsArray) {
             // Animasi SELESAI - Semua titik sudah terender dengan AKURAT
             const timeElapsed = ((performance.now() - startTime) / 1000).toFixed(2);
             statusText.textContent = `✓ SELESAI! ${timeElapsed}s — ${totalDataPoints} titik AKURAT`;
-            statusText.style.color = '#00fa9a';
+            statusText.style.color = '#16a34a'; // Solid, contrasting green without neon glow
 
             // Kirim data ke backend untuk penyimpanan
             saveDataToBackend(pointsArray, totalDataPoints);
