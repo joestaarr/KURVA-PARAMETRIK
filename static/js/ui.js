@@ -279,19 +279,29 @@ function updateAnalysisPanel(curveType, values, points) {
                 <ul>
                     <li><strong>Titik Mendatar (X)</strong> = Pusat X + (Jari-jari × Cosinus sudut)</li>
                     <li><strong>Titik Tegak (Y)</strong> = Pusat Y + (Jari-jari × Sinus sudut)</li>
+                    <li><strong>Turunan X (Kecepatan Horizontal)</strong> = -Jari-jari × Sinus sudut</li>
+                    <li><strong>Turunan Y (Kecepatan Vertikal)</strong> = Jari-jari × Cosinus sudut</li>
                 </ul>
                 <div class="eq-formula">$$ x = ${values.xc} + ${r} \\cos(t) \\quad \\text{dan} \\quad y = ${values.yc} + ${r} \\sin(t) $$</div>
+                <div class="eq-formula">$$ \\frac{dx}{dt} = -${r} \\sin(t) \\quad \\text{dan} \\quad \\frac{dy}{dt} = ${r} \\cos(t) $$</div>
             `;
 
-            calcStory = `
-                Mari kita simulasikan! Bayangkan komputer sedang memproses sudut <strong>0 derajat (Kanan lurus)</strong>:<br>
-                <ol>
-                    <li>Sudut 0 derajat berarti <code>Cos(0) = 1</code> dan <code>Sin(0) = 0</code>.</li>
-                    <li><strong>Hitung X:</strong> Titik pusat (${values.xc}) + (${r} × 1) = <strong>${values.xc + r}</strong>.</li>
-                    <li><strong>Hitung Y:</strong> Titik pusat (${values.yc}) + (${r} × 0) = <strong>${values.yc}</strong>.</li>
-                </ol>
-                Jadi, komputer akan menaruh satu titik di koordinat <strong>(${values.xc + r}, ${values.yc})</strong>. Proses ini diulang-ulang sampai titik-titik tersebut menyatu membentuk lingkaran.
-            `;
+            if (totalPoints > 0) {
+                const pt = dataPoints[0]; // Ambil titik pertama
+                calcStory = `
+                    Mari kita bedah perhitungan nyata pada <strong>Titik Pertama (T = ${fmt(pt.t, 1)}°)</strong>:<br>
+                    <ol>
+                        <li><strong>Konversi Sudut:</strong> Komputer mengubah derajat ke radian: <code>${fmt(pt.t, 1)} × (π / 180) = ${fmt(pt.rad, 4)} radian</code>.</li>
+                        <li><strong>Hitung Cos & Sin:</strong> Didapat nilai <code>Cos(${fmt(pt.rad, 4)}) = ${fmt(Math.cos(pt.rad), 4)}</code> dan <code>Sin(${fmt(pt.rad, 4)}) = ${fmt(Math.sin(pt.rad), 4)}</code>.</li>
+                        <li><strong>Kalkulasi Titik X:</strong> Pusat X (${values.xc}) + (${r} × ${fmt(Math.cos(pt.rad), 4)}) = <strong>${fmt(pt.x, 3)}</strong>.</li>
+                        <li><strong>Kalkulasi Titik Y:</strong> Pusat Y (${values.yc}) + (${r} × ${fmt(Math.sin(pt.rad), 4)}) = <strong>${fmt(pt.y, 3)}</strong>.</li>
+                        <li><strong>Kecepatan (Speed):</strong> Karena ini lingkaran, kecepatan akan selalu konstan sebesar jari-jarinya, yaitu <strong>${fmt(pt.speed, 2)}</strong>.</li>
+                    </ol>
+                    Maka titik pertama sukses diletakkan pada koordinat <strong>(${fmt(pt.x, 3)}, ${fmt(pt.y, 3)})</strong>!
+                `;
+            } else {
+                calcStory = "Tidak ada titik yang dirender.";
+            }
             break;
         }
         case 'ellipse': {
@@ -299,69 +309,96 @@ function updateAnalysisPanel(curveType, values, points) {
             originStory = `Elips sebenarnya adalah lingkaran yang "ditarik" memanjang atau meninggi. Kalau lingkaran punya satu jari-jari tetap, Elips punya dua: <strong>Lebar mendatar (${a} piksel)</strong> dan <strong>Tinggi vertikal (${b} piksel)</strong>. Karena tarikannya tidak seimbang, bentuknya jadi lonjong.`;
             
             formulaStory = `
-                Komputer menggunakan rumus yang mirip lingkaran, tapi dikali dengan nilai tarikan yang berbeda:<br>
+                Komputer menggunakan rumus yang mirip lingkaran, tapi dikali dengan nilai tarikan (Jari-jari A dan B) yang berbeda:<br>
                 <ul>
-                    <li><strong>Titik Mendatar (X)</strong> = Pusat X + (Tarikan Mendatar × Cosinus sudut)</li>
-                    <li><strong>Titik Tegak (Y)</strong> = Pusat Y + (Tarikan Vertikal × Sinus sudut)</li>
+                    <li><strong>Titik X</strong> = Pusat X + (Lebar Horizontal × Cosinus sudut)</li>
+                    <li><strong>Titik Y</strong> = Pusat Y + (Tinggi Vertikal × Sinus sudut)</li>
+                    <li><strong>Turunan X</strong> = -Lebar Horizontal × Sinus sudut</li>
+                    <li><strong>Turunan Y</strong> = Tinggi Vertikal × Cosinus sudut</li>
                 </ul>
                 <div class="eq-formula">$$ x = ${values.xc} + ${a} \\cos(t) \\quad \\text{dan} \\quad y = ${values.yc} + ${b} \\sin(t) $$</div>
+                <div class="eq-formula">$$ \\frac{dx}{dt} = -${a} \\sin(t) \\quad \\text{dan} \\quad \\frac{dy}{dt} = ${b} \\cos(t) $$</div>
             `;
 
-            calcStory = `
-                Bayangkan komputer memproses sudut <strong>90 derajat (Tepat di atas)</strong>:<br>
-                <ol>
-                    <li>Sudut 90 derajat berarti <code>Cos(90) = 0</code> dan <code>Sin(90) = 1</code>.</li>
-                    <li><strong>Hitung X:</strong> Titik pusat (${values.xc}) + (${a} × 0) = <strong>${values.xc}</strong>.</li>
-                    <li><strong>Hitung Y:</strong> Titik pusat (${values.yc}) + (${b} × 1) = <strong>${values.yc + b}</strong>.</li>
-                </ol>
-                Komputer pun menggambar titik puncak elips tersebut di posisi <strong>(${values.xc}, ${values.yc + b})</strong>.
-            `;
+            if (totalPoints > 0) {
+                const pt = dataPoints[0];
+                calcStory = `
+                    Inilah bedah perhitungan nyata pada <strong>Titik Pertama (T = ${fmt(pt.t, 1)}°)</strong>:<br>
+                    <ol>
+                        <li><strong>Sudut Radian:</strong> <code>${fmt(pt.t, 1)} × (π / 180) = ${fmt(pt.rad, 4)} radian</code>.</li>
+                        <li><strong>Hitung X:</strong> Pusat X (${values.xc}) + (Lebar ${a} × Cos(${fmt(pt.rad, 4)})) = <strong>${fmt(pt.x, 3)}</strong>.</li>
+                        <li><strong>Hitung Y:</strong> Pusat Y (${values.yc}) + (Tinggi ${b} × Sin(${fmt(pt.rad, 4)})) = <strong>${fmt(pt.y, 3)}</strong>.</li>
+                        <li><strong>Vektor Turunan:</strong> dx/dt = <strong>${fmt(pt.dxdt, 3)}</strong>, dy/dt = <strong>${fmt(pt.dydt, 3)}</strong>.</li>
+                        <li><strong>Kecepatan (Speed):</strong> √(dx/dt² + dy/dt²) = <strong>${fmt(pt.speed, 3)}</strong>. <br>
+                        <em>Perhatikan di tabel, kecepatan elips ini akan bervariasi! Berbeda dengan lingkaran yang statis.</em></li>
+                    </ol>
+                    Maka titik ini menempati posisi <strong>(${fmt(pt.x, 3)}, ${fmt(pt.y, 3)})</strong> di kanvas.
+                `;
+            } else {
+                calcStory = "Tidak ada titik yang dirender.";
+            }
             break;
         }
         case 'parabola': {
             const a = values.a;
-            originStory = `Parabola itu seperti lintasan bola yang dilempar ke udara lalu jatuh kembali. Kurva ini punya satu titik "Puncak/Dasar", lalu membuka ke satu arah (atas/bawah/kiri/kanan) sampai tak terhingga. Tingkat "kelebaran" bukaan ini ditentukan oleh nilai fokus sebesar <strong>${a}</strong>. Semakin besar nilainya, semakin mangkoknya terbuka lebar.`;
+            originStory = `Parabola itu seperti lintasan bola yang dilempar ke udara lalu jatuh kembali. Kurva ini punya satu titik "Puncak/Dasar", lalu membuka ke satu arah (atas/bawah/kiri/kanan) sampai tak terhingga. Tingkat "kelebaran" bukaan ini ditentukan oleh nilai fokus sebesar <strong>${a}</strong>.`;
             
             formulaStory = `
                 Berbeda dengan lingkaran yang pakai Cos/Sin, parabola menggunakan perhitungan "Kuadrat" (pangkat dua) pada salah satu sumbunya saja:<br>
                 <ul>
-                    <li>Sumbu lintasan (linier) = Bergerak lurus biasa (dikalikan <strong>waktu/t</strong>).</li>
-                    <li>Sumbu lengkungan (kuadratik) = Semakin lama bergeraknya semakin cepat melengkung (dikalikan <strong>waktu kuadrat / t²</strong>).</li>
+                    <li><strong>Sumbu Lintasan Linier:</strong> Bergerak lurus biasa seiring bertambahnya T.</li>
+                    <li><strong>Sumbu Lengkungan Kuadratik:</strong> Semakin lama bergeraknya semakin cepat melengkung (dikalikan nilai T²).</li>
                 </ul>
+                <div class="eq-formula">Orientasi Vertikal (Atas/Bawah):<br> $$ x = x_c + t \\quad \\text{dan} \\quad y = y_c + \\frac{t^2}{4a} $$</div>
+                <div class="eq-formula">Orientasi Horizontal (Kanan/Kiri):<br> $$ x = x_c + \\frac{t^2}{4a} \\quad \\text{dan} \\quad y = y_c + t $$</div>
             `;
 
-            calcStory = `
-                Anggaplah arah kurva menghadap ke atas, dan kita hitung pada saat "waktu (t)" berjalan <strong>2 detik</strong>:<br>
-                <ol>
-                    <li><strong>Hitung X (Bergerak datar):</strong> Pusat (${values.xc}) + (2 × Fokus ${a} × t=2) = <strong>${values.xc + (4 * a)}</strong>.</li>
-                    <li><strong>Hitung Y (Melengkung naik):</strong> Pusat (${values.yc}) + (Fokus ${a} × t²=4) = <strong>${values.yc + (a * 4)}</strong>.</li>
-                </ol>
-                Itulah alasan kenapa parabola bentuknya seperti mangkok terbuka, karena sumbu Y-nya melesat jauh lebih cepat (pangkat dua) daripada sumbu X-nya.
-            `;
+            if (totalPoints > 0) {
+                const pt = dataPoints[0];
+                calcStory = `
+                    Mari kita bedah nilai pada <strong>Titik Awal T = ${fmt(pt.t, 2)}</strong>:<br>
+                    <ol>
+                        <li><strong>Catatan:</strong> Pada Parabola, parameter T bukanlah derajat sudut, melainkan unit interval murni (seperti detik pada waktu).</li>
+                        <li><strong>Kalkulasi Linier:</strong> Pada sumbu lurus, koordinatnya hanya ditambah T. Jika orientasi vertikal, X = Pusat(${values.xc}) + T(${fmt(pt.t, 2)}).</li>
+                        <li><strong>Kalkulasi Kuadratik:</strong> Pada sumbu lengkung, nilainya membesar secara kuadratik, menghasilkan sumbu dominan = <strong>${fmt(values.orientation === 'up' || values.orientation === 'down' ? pt.y : pt.x, 3)}</strong>.</li>
+                        <li><strong>Vektor Turunan:</strong> Nilai perubahan dx/dt = <strong>${fmt(pt.dxdt, 3)}</strong>, dan dy/dt = <strong>${fmt(pt.dydt, 3)}</strong>.</li>
+                    </ol>
+                    Hasilnya, titik terluar ini berada di posisi koordinat <strong>(${fmt(pt.x, 3)}, ${fmt(pt.y, 3)})</strong>.
+                `;
+            } else {
+                calcStory = "Tidak ada titik yang dirender.";
+            }
             break;
         }
         case 'hyperbola': {
             const a = values.a, b = values.b;
-            originStory = `Hiperbola adalah kurva yang paling unik. Bentuknya seperti dua parabola yang saling membelakangi dan menjauh sampai ke ujung alam semesta. Kurva ini tidak pernah bersentuhan atau tertutup. Jarak dari pusat ke bukaan terdekatnya adalah <strong>${a} piksel</strong>.`;
+            originStory = `Hiperbola adalah kurva yang paling unik. Bentuknya seperti dua bukaan yang saling membelakangi dan menjauh sampai ke ujung alam semesta tanpa pernah menyatu. Jarak dari pusat ke bukaan terdekatnya (verteks) adalah <strong>${a} piksel</strong>.`;
             
             formulaStory = `
-                Hiperbola menggunakan fungsi trigonometri Sekan (Sec) dan Tangen (Tan). Karena sifat fungsi ini meledak tak terbatas pada sudut tertentu, kurvanya ikut menjauh tanpa batas:<br>
+                Hiperbola menggunakan fungsi trigonometri Sekan (Sec) dan Tangen (Tan). Karena sifat fungsi ini nilainya "meledak" tak terbatas mendekati sudut 90/270 derajat, kurvanya menjauh tanpa batas mengikuti asimtot:<br>
                 <ul>
-                    <li>Sumbu yang terbelah (Transversal) dikalikan fungsi Sekan (Sec).</li>
-                    <li>Sumbu sebelahnya (Konjugat) dikalikan fungsi Tangen (Tan).</li>
+                    <li>Sumbu Transversal (Terbelah): menggunakan fungsi Sekan (Sec).</li>
+                    <li>Sumbu Konjugat (Pasangan): menggunakan fungsi Tangen (Tan).</li>
                 </ul>
-                <div class="eq-formula">$$ x = ${values.xc} \\pm ${a} \\sec(t) \\quad \\text{dan} \\quad y = ${values.yc} + ${b} \\tan(t) $$</div>
+                <div class="eq-formula">Horizontal:<br> $$ x = x_c + a \\sec(t) \\quad \\text{dan} \\quad y = y_c + b \\tan(t) $$</div>
+                <div class="eq-formula">Vertikal:<br> $$ x = x_c + b \\tan(t) \\quad \\text{dan} \\quad y = y_c + a \\sec(t) $$</div>
             `;
 
-            calcStory = `
-                Sebagai contoh, titik awal persis di puncak lekukan (sudut 0 derajat):<br>
-                <ol>
-                    <li>Pada 0 derajat, <code>Sec(0) = 1</code> dan <code>Tan(0) = 0</code>.</li>
-                    <li><strong>Hitung X:</strong> Pusat (${values.xc}) ± (${a} × 1) = <strong>Kanan: ${values.xc + a}, Kiri: ${values.xc - a}</strong>.</li>
-                    <li><strong>Hitung Y:</strong> Pusat (${values.yc}) + (${b} × 0) = <strong>${values.yc}</strong>.</li>
-                </ol>
-                Ini adalah titik terdekat kedua kurva yang saling berhadapan sebelum mereka melebar saling menjauh tak berujung.
-            `;
+            if (totalPoints > 0) {
+                const pt = dataPoints[0];
+                calcStory = `
+                    Perhatikan titik perhitungan nyata pada <strong>Sudut T = ${fmt(pt.t, 1)}°</strong>:<br>
+                    <ol>
+                        <li><strong>Konversi Sudut:</strong> <code>${fmt(pt.t, 1)} × (π / 180) = ${fmt(pt.rad, 4)} radian</code>.</li>
+                        <li><strong>Fungsi Trigonometri:</strong> Nilai <code>Sec(T) = ${fmt(pt.secT, 4)}</code> dan <code>Tan(T) = ${fmt(pt.tanT, 4)}</code>. <br>
+                        <em>Catatan: Nilai ini dikalkulasi menggunakan 1/Cos(T) untuk secan.</em></li>
+                        <li><strong>Kalkulasi Koordinat Akhir:</strong> Berdasarkan rumus, titik ini dirender pada X = <strong>${fmt(pt.x, 3)}</strong> dan Y = <strong>${fmt(pt.y, 3)}</strong>.</li>
+                        <li><strong>Kecepatan (Speed):</strong> Seiring sudut T mendekati 90 atau 270 derajat, titik akan bergerak semakin liar dan cepat hingga kecepatannya mencapai <strong>${fmt(pt.speed, 1)} px/step</strong>. Pada batas tersebut, garis kurva sengaja kita putus (break) agar tidak menghubungkan titik dari kutub utara ke selatan kanvas secara acak.</li>
+                    </ol>
+                `;
+            } else {
+                calcStory = "Tidak ada titik yang dirender.";
+            }
             break;
         }
     }
