@@ -101,8 +101,7 @@ Siap menjalankan mahakarya ini di mesin lokal Anda? Ikuti langkah mudah berikut:
    ```bash
    python app.py
    ```
-5. Buka Browser Anda yang paling *modern* dan akses URL sakti berikut:
-   👉 **`http://localhost:5000`**
+5. Perhatikan tulisan yang muncul di terminal Anda. Buka Browser Anda yang paling *modern* dan akses URL yang tertera di sana (secara *default* biasanya adalah: 👉 **`http://127.0.0.1:5000`** atau **`http://localhost:5000`**)
 
 ---
 
