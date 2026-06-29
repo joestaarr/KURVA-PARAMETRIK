@@ -63,11 +63,11 @@ function mapCoordinate(x, y, w, h) {
 function drawGrid(ctx, w, h) {
     ctx.clearRect(0, 0, w, h);
 
-    // Grid tipis transparan
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+    // Grid tipis transparan (Gelap untuk latar putih)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
     ctx.lineWidth = 1;
     ctx.font = '9px Inter, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
 
     const baseStep = 30;       // Grid setiap 30px secara logis
     const baseTickStep = 60;   // Angka label setiap 60px
@@ -116,13 +116,14 @@ function drawGrid(ctx, w, h) {
             
             // Format angka untuk membuang desimal yang berlebihan akibat precision issue
             let valText = Number(x.toPrecision(10)).toString();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
             ctx.fillText(valText, px + 2, pyDraw - 5);
             ctx.beginPath();
             ctx.moveTo(px, pyDraw - 3);
             ctx.lineTo(px, pyDraw + 3);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
             ctx.stroke();
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
         }
     }
 
@@ -141,48 +142,49 @@ function drawGrid(ctx, w, h) {
             const pxDraw = pxZero > 10 && pxZero < w - 20 ? pxZero : (pxZero <= 10 ? 10 : w - 20);
             
             let valText = Number(y.toPrecision(10)).toString();
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
             ctx.fillText(valText, pxDraw + 5, py - 2);
             ctx.beginPath();
             ctx.moveTo(pxDraw - 3, py);
             ctx.lineTo(pxDraw + 3, py);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.4)';
             ctx.stroke();
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.08)';
         }
     }
 
     // Sumbu X utama
     const pyZero = h / 2 + offsetY;
     if (pyZero >= 0 && pyZero <= h) {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(0, pyZero);
         ctx.lineTo(w, pyZero);
         ctx.stroke();
         ctx.font = '11px Inter, sans-serif';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillText('X', w - 15, pyZero - 8);
     }
 
     // Sumbu Y utama
     const pxZero = w / 2 + offsetX;
     if (pxZero >= 0 && pxZero <= w) {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.moveTo(pxZero, 0);
         ctx.lineTo(pxZero, h);
         ctx.stroke();
         ctx.font = '11px Inter, sans-serif';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
         ctx.fillText('Y', pxZero + 8, 14);
     }
 
     // Label Origin
     if (pxZero >= 0 && pxZero <= w && pyZero >= 0 && pyZero <= h) {
         ctx.font = '9px Inter, sans-serif';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillText('O', pxZero + 4, pyZero + 12);
     }
 }
@@ -197,32 +199,25 @@ function drawGrid(ctx, w, h) {
  * Warna SOLID dan CLEAN tanpa opacity yang berubah
  */
 function getPointColor(progress) {
-    // Gradient spektrum: Cyan → Hijau Lime → Kuning Emas
-    // Progress 0.0 → Cyan (0, 255, 255)
-    // Progress 0.33 → Lime (0, 255, 0)
-    // Progress 0.66 → Kuning (255, 255, 0)
-    // Progress 1.0 → Emas Cerah (255, 200, 0)
+    // Gradient spektrum warna hangat: Kuning → Oranye → Merah Bata
+    // Progress 0.0 → Kuning (255, 200, 0)
+    // Progress 0.5 → Oranye (255, 100, 0)
+    // Progress 1.0 → Merah Bata (200, 30, 30)
     
     let r, g, b;
     
-    if (progress < 0.33) {
-        // Cyan ke Hijau: (0, 255, 255) → (0, 255, 0)
-        const p = progress / 0.33;
-        r = 0;
-        g = 255;
-        b = Math.round(255 * (1 - p));
-    } else if (progress < 0.66) {
-        // Hijau ke Kuning: (0, 255, 0) → (255, 255, 0)
-        const p = (progress - 0.33) / 0.33;
-        r = Math.round(255 * p);
-        g = 255;
+    if (progress < 0.5) {
+        // Kuning ke Oranye: (255, 200, 0) → (255, 100, 0)
+        const p = progress / 0.5;
+        r = 255;
+        g = Math.round(200 - (100 * p));
         b = 0;
     } else {
-        // Kuning ke Emas: (255, 255, 0) → (255, 200, 0)
-        const p = (progress - 0.66) / 0.34;
-        r = 255;
-        g = Math.round(255 * (1 - p * 0.22));
-        b = 0;
+        // Oranye ke Merah Bata: (255, 100, 0) → (200, 30, 30)
+        const p = (progress - 0.5) / 0.5;
+        r = Math.round(255 - (55 * p));
+        g = Math.round(100 - (70 * p));
+        b = Math.round(30 * p);
     }
     
     // Return RGB format SOLID (tidak transparan)
@@ -280,8 +275,8 @@ function drawCenterMarker(ctx, cx, cy, w, h) {
     const px = mapped.px;
     const py = mapped.py;
 
-    // Cross mark - solid, jelas, TIDAK glow
-    ctx.strokeStyle = 'rgb(0, 255, 150)'; // Hijau terang CLEAN
+    // Cross mark - solid, jelas
+    ctx.strokeStyle = 'rgb(50, 100, 200)'; // Biru Gelap
     ctx.lineWidth = 2;
     const size = 8;
 
@@ -298,13 +293,13 @@ function drawCenterMarker(ctx, cx, cy, w, h) {
     // Outer ring - tipis
     ctx.beginPath();
     ctx.arc(px, py, size + 2, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgb(0, 200, 120)';
+    ctx.strokeStyle = 'rgb(40, 80, 180)';
     ctx.lineWidth = 1;
     ctx.stroke();
 
     // Label koordinat - MUDAH DIBACA
     ctx.font = 'bold 10px Inter, monospace';
-    ctx.fillStyle = 'rgb(0, 255, 150)';
+    ctx.fillStyle = 'rgb(50, 100, 200)';
     ctx.fillText(`C(${cx}, ${cy})`, px + size + 5, py - 5);
 }
 
@@ -439,6 +434,8 @@ function animateCurve(pointsArray) {
     // FRAME-BY-FRAME DOT RENDERING
     // =====================================================================
     let renderedDataIdx = 0; // Counter for data points only (excluding breaks)
+    let lastPx = null;
+    let lastPy = null;
 
     function drawNextDots() {
         // Hitung berapa titik per frame (agar animasi ~2-3 detik)
@@ -465,27 +462,33 @@ function animateCurve(pointsArray) {
                 continue;
             }
 
-            // Ukuran titik AKURAT berdasarkan speed (jika tersedia)
-            // Titik yang lebih lambat = lebih besar (densitas alami)
-            // Titik yang lebih cepat = lebih kecil
+            // Garis Penghubung Transparan
+            if (lastPx !== null && lastPy !== null) {
+                ctx.beginPath();
+                ctx.moveTo(lastPx, lastPy);
+                ctx.lineTo(mapped.px, mapped.py);
+                ctx.strokeStyle = 'rgba(255, 126, 95, 0.4)'; // Warna hangat semi-transparan
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+
+            // Ukuran titik AKURAT berdasarkan speed (jika tersedia) - lebih besar untuk background terang
             const dotSize = pt.speed !== undefined
-                ? getPointSize(pt.speed, 1.2, 2.8)
-                : 1.8;
+                ? getPointSize(pt.speed, 2.5, 4.5)
+                : 3.0;
 
             // Warna titik berdasarkan progress parameter t (CLEAN, SOLID, TANPA GLOW)
             const color = getPointColor(progress);
 
             // Render dot sebagai filled circle AKURAT
-            // Anti-aliasing otomatis oleh canvas
             ctx.beginPath();
             ctx.arc(mapped.px, mapped.py, dotSize, 0, Math.PI * 2);
             ctx.fillStyle = color;
             ctx.fill();
             
-            // Border ultra tipis untuk ketajaman (opsional, bisa dihapus)
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
+            // Simpan koordinat terakhir untuk garis berikutnya
+            lastPx = mapped.px;
+            lastPy = mapped.py;
 
             // Update live koordinat
             liveX.textContent = `X: ${pt.x.toFixed(2)}`;
@@ -620,14 +623,31 @@ function redrawCanvas() {
     // We only redraw data points that were already rendered
     // If the animation is still playing, we redraw everything up to currentIdx
     // For simplicity, we just redraw all of them if the animation finished, or up to the current progress.
+    let lastPx = null;
+    let lastPy = null;
+
     for (let i = 0; i < cachedPointsArray.length; i++) {
         const pt = cachedPointsArray[i];
-        if (pt.break) continue;
+        if (pt.break) {
+            lastPx = null;
+            lastPy = null;
+            continue;
+        }
         
         const mapped = mapCoordinate(pt.x, pt.y, w, h);
         if (!mapped) continue;
         
-        const dotSize = pt.speed !== undefined ? getPointSize(pt.speed, 1.2, 2.8) : 1.8;
+        // Garis penghubung
+        if (lastPx !== null && lastPy !== null) {
+            ctx.beginPath();
+            ctx.moveTo(lastPx, lastPy);
+            ctx.lineTo(mapped.px, mapped.py);
+            ctx.strokeStyle = 'rgba(255, 126, 95, 0.4)';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        const dotSize = pt.speed !== undefined ? getPointSize(pt.speed, 2.5, 4.5) : 3.0;
         const progress = i / Math.max(1, cachedPointsArray.length - 1);
         const color = getPointColor(progress);
         
@@ -636,8 +656,7 @@ function redrawCanvas() {
         ctx.fillStyle = color;
         ctx.fill();
         
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-        ctx.lineWidth = 0.5;
-        ctx.stroke();
+        lastPx = mapped.px;
+        lastPy = mapped.py;
     }
 }
