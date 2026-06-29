@@ -12,9 +12,8 @@ let animationFrameId = null;
 // TRANSFORM STATE (Zoom & Pan Controller)
 // =====================================================================
 /**
- * [ZOOM & PAN CONTROLLER]
- * Menyimpan status pergeseran (panning) dan pembesaran (zooming) kanvas.
- * Variabel ini digunakan untuk memanipulasi view pengguna secara interaktif.
+ * Zoom & Pan Controller state.
+ * Manages canvas scaling and offset for interactive viewport manipulation.
  */
 let currentScale = 1;
 let offsetX = 0;
@@ -28,23 +27,14 @@ let cachedPointsArray = null;
 // COORDINATE MAPPING (Coordinate Controller)
 // =====================================================================
 /**
- * [COORDINATE CONTROLLER] mapCoordinate
- * ---------------------------------------------------------------------
- * Memetakan koordinat KARTESIAN MATEMATIKA ke sistem KOORDINAT PIKSEL LAYAR.
+ * Maps Cartesian coordinates to Canvas pixel coordinates.
+ * Center is (0,0), Y-axis grows upwards in math, downwards in canvas.
  * 
- * Mengapa ini dibutuhkan?
- * 1. Di Matematika: Titik (0,0) ada di tengah. Y positif ke atas.
- * 2. Di Layar HTML Canvas: Titik (0,0) ada di pojok KIRI ATAS. Y positif ke BAWAH.
- * 
- * Cara Kerjanya:
- *   px = (w/2) + (x * currentScale) + offsetX
- *   py = (h/2) - (y * currentScale) + offsetY  <-- Minus karena Y terbalik di kanvas
- * 
- * @param {number} x, y - Koordinat matematika mentah
- * @param {number} w, h - Lebar dan tinggi elemen kanvas
- * @returns {Object|null} - Koordinat pixel siap dirender (px, py)
- *                          Me-return null jika titik berada jauh di luar layar
- *                          (Teknik "Culling" agar tidak membuang performa CPU).
+ * @param {number} x - Cartesian X coordinate.
+ * @param {number} y - Cartesian Y coordinate.
+ * @param {number} w - Canvas width.
+ * @param {number} h - Canvas height.
+ * @returns {Object|null} - Pixel coordinates {px, py} or null if out of bounds (culling).
  */
 function mapCoordinate(x, y, w, h) {
     const px = w / 2 + (x * currentScale) + offsetX;
@@ -66,10 +56,8 @@ function mapCoordinate(x, y, w, h) {
 // GRID RENDERING (Grid Controller)
 // =====================================================================
 /**
- * [GRID CONTROLLER]
- * Fungsi drawGrid() bertugas merender garis-garis kotak (millimeter block)
- * sebagai latar belakang kanvas. Skala grid ini (logicalMajorStep) akan 
- * membesar/mengecil secara otomatis berdasarkan level Zoom pengguna.
+ * Renders the background coordinate grid (millimeter block style).
+ * Grid scale adapts dynamically based on current zoom level.
  */
 function drawGrid(ctx, w, h) {
     ctx.clearRect(0, 0, w, h);

@@ -79,33 +79,15 @@ function computeCurvature(points, delta) {
 // LINGKARAN (Math Engine Controller)
 // =====================================================================
 /**
- * [MATH ENGINE CONTROLLER: CIRCLE] calculateCircle
- * ---------------------------------------------------------------------
- * Fungsi ini bertugas menghitung seluruh titik-titik koordinat untuk Lingkaran.
- * Ia tidak menggambar apapun, hanya memuntahkan data mentah (RAW DATA).
+ * Calculate coordinates for a Circle curve.
  * 
- * @param {number} xc - Koordinat pusat sumbu X
- * @param {number} yc - Koordinat pusat sumbu Y
- * @param {number} r - Jari-jari lingkaran (radius)
- * @param {number} delta - Interval jarak antar titik (dalam derajat)
- * @param {number} tMin - Titik awal (derajat)
- * @param {number} tMax - Titik akhir (derajat)
- * @returns {Array<Object>} Kumpulan objek titik (x, y, dxdt, dydt, speed, dll)
- * 
- * Rumus Parametrik Lingkaran:
- *   x(t) = xc + r · cos(t)
- *   y(t) = yc + r · sin(t)
- *
- * Turunan Pertama (Kecepatan / dx/dt):
- *   dx/dt = -r · sin(t)
- *   dy/dt = r · cos(t)
- * 
- * Output Speed (Kecepatan): Konstan di semua titik karena jarik-jarik tidak berubah.
- * Kecepatan parametrik:
- *   |v(t)| = √(dx/dt² + dy/dt²) = r  (konstan untuk lingkaran)
- *
- * Kelengkungan:
- *   κ = 1/r  (konstan untuk lingkaran)
+ * @param {number} xc - Center X coordinate.
+ * @param {number} yc - Center Y coordinate.
+ * @param {number} r - Radius.
+ * @param {number} delta - Step interval (degrees).
+ * @param {number} tMin - Start angle (degrees).
+ * @param {number} tMax - End angle (degrees).
+ * @returns {Array<Object>} Array of point data.
  */
 function calculateCircle(xc, yc, r, delta, tMin, tMax) {
     const points = [];
@@ -167,32 +149,16 @@ function calculateCircle(xc, yc, r, delta, tMin, tMax) {
 // ELIPS (Math Engine Controller)
 // =====================================================================
 /**
- * [MATH ENGINE CONTROLLER: ELLIPSE] calculateEllipse
- * ---------------------------------------------------------------------
- * Menghitung seluruh titik-titik koordinat untuk Elips.
- *
- * @param {number} xc, yc - Titik pusat
- * @param {number} a - Sumbu Semi-Mayor (Jari-jari arah horizontal)
- * @param {number} b - Sumbu Semi-Minor (Jari-jari arah vertikal)
- * @param {number} delta, tMin, tMax - Parameter iterasi sudut (derajat)
- * @returns {Array<Object>} Kumpulan objek titik
+ * Calculate coordinates for an Ellipse curve.
  * 
- * Rumus Parametrik Elips:
- *   x(t) = xc + a · cos(t)
- *   y(t) = yc + b · sin(t)
- *
- * Turunan Pertama (Kecepatan / dx/dt):
- *   dx/dt = -a · sin(t)
- *   dy/dt = b · cos(t)
- * 
- * Karakteristik Speed (Kecepatan): 
- * Berbeda dengan Lingkaran, kecepatan render elips BERVARIASI. Ia melambat 
- * saat berada di tikungan tajam, dan melesat cepat di jalur yang landai.
- * Kecepatan parametrik:
- *   |v(t)| = √(a²sin²t + b²cos²t)
- *
- * Kelengkungan:
- *   κ(t) = ab / (a²sin²t + b²cos²t)^(3/2)
+ * @param {number} xc - Center X coordinate.
+ * @param {number} yc - Center Y coordinate.
+ * @param {number} a - Semi-major axis (Horizontal radius).
+ * @param {number} b - Semi-minor axis (Vertical radius).
+ * @param {number} delta - Step interval (degrees).
+ * @param {number} tMin - Start angle (degrees).
+ * @param {number} tMax - End angle (degrees).
+ * @returns {Array<Object>} Array of point data.
  */
 function calculateEllipse(xc, yc, a, b, delta, tMin, tMax) {
     const points = [];
@@ -270,29 +236,16 @@ function calculateEllipse(xc, yc, a, b, delta, tMin, tMax) {
 // PARABOLA (Math Engine Controller)
 // =====================================================================
 /**
- * [MATH ENGINE CONTROLLER: PARABOLA] calculateParabola
- * ---------------------------------------------------------------------
- * Menghitung titik-titik koordinat untuk bentuk Parabola.
- * Berbeda dari Lingkaran/Elips yang menggunakan rentang DERAJAT (0-360), 
- * Parabola dirender menggunakan T (waktu/titik sembarang) seperti -10 hingga 10.
+ * Calculate coordinates for a Parabola curve.
  * 
- * @param {number} xc, yc - Titik pusat vertex (puncak parabola)
- * @param {number} a - Jarak fokus (mempengaruhi seberapa "lebar" bukaan kurva)
- * @param {number} delta, tMin, tMax - Rentang parameter nilai T (bukan derajat)
- * @param {string} orientation - Arah bukaan ('up', 'down', 'left', 'right')
- * @returns {Array<Object>} Kumpulan objek titik
- * 
- * Rumus Parametrik Parabola (Contoh Orientasi Ke Atas):
- *   x(t) = xc + t
- *   y(t) = yc + t² / (4a)
- * 
- * Turunan Pertama (dx/dt):
- *   dx/dt = 1
- *   dy/dt = t / (2a)
- * 
- * Sifat Unik Parabola: Ia tidak pernah melengkung kembali/menutup. 
- * Ia membentang terus ke titik tak terhingga. Oleh karena itu, kita membatasi 
- * perulangan dengan tMin dan tMax secara absolut.
+ * @param {number} xc - Vertex X coordinate.
+ * @param {number} yc - Vertex Y coordinate.
+ * @param {number} a - Focal length.
+ * @param {number} delta - Step interval (t-units).
+ * @param {number} tMin - Start parameter (t-units).
+ * @param {number} tMax - End parameter (t-units).
+ * @param {string} orientation - Curve direction ('up', 'down', 'left', 'right').
+ * @returns {Array<Object>} Array of point data.
  */
 function calculateParabola(xc, yc, a, delta, tMin, tMax, orientation) {
     const points = [];
@@ -384,42 +337,17 @@ function calculateParabola(xc, yc, a, delta, tMin, tMax, orientation) {
 // HIPERBOLA (HYPERBOLA)
 // =====================================================================
 /**
- * [MATH ENGINE CONTROLLER: HYPERBOLA] calculateHyperbola
- * ---------------------------------------------------------------------
- * Menghitung titik-titik koordinat untuk bentuk Hiperbola.
- * Kurva unik yang SELALU memiliki dua cabang yang saling membelakangi.
- *
- * @param {number} xc, yc - Titik pusat di antara dua puncak
- * @param {number} a - Jarak dari titik pusat ke puncak (vertex)
- * @param {number} b - Jarak konjugasi (menentukan asimtot kemiringan)
- * @param {number} delta, tMin, tMax - Parameter sudut (derajat)
- * @param {string} orientation - 'horizontal' (kiri-kanan) atau 'vertical' (atas-bawah)
- * @returns {Array<Object>} Kumpulan objek titik
+ * Calculate coordinates for a Hyperbola curve.
  * 
- * Rumus Parametrik Hiperbola Horizontal:
- *   x(t) = xc + a · sec(t)   => (sec(t) = 1/cos(t))
- *   y(t) = yc + b · tan(t)   => (tan(t) = sin(t)/cos(t))
- * 
- * Hal Penting: Saat t mencapai tepat 90 atau 270 derajat, nilai sec(t) 
- * dan tan(t) menjadi TAK TERHINGGA (Infinity). Itulah sebabnya kita menggunakan 
- * "if (Math.abs(t % 180) === 90) continue;" untuk melompatinya agar kode tidak crash.
- * 
- * Karena hiperbola terputus di tengah, kita menyisipkan "{ break: true }" 
- * di array agar CanvasAnimator berhenti menarik garis penghubung dari cabang 
- * pertama ke cabang kedua.
- *
- * Rumus Turunan (Horizontal):
- *   dx/dt = a · sec(t)·tan(t)    dy/dt = b · sec²(t)
- *
- * Vertikal:
- *   x(t) = xc + b · tan(t)       y(t) = yc + a · sec(t)
- *   dx/dt = b · sec²(t)          dy/dt = a · sec(t)·tan(t)
- *
- * Properti:
- *   c = √(a² + b²)
- *   Eksentrisitas = c / a
- *   Asimtot: y = ±(b/a)·x  (horizontal)
- *            x = ±(b/a)·y  (vertikal)
+ * @param {number} xc - Center X coordinate.
+ * @param {number} yc - Center Y coordinate.
+ * @param {number} a - Distance to vertex (transverse axis).
+ * @param {number} b - Distance to conjugate axis.
+ * @param {number} delta - Step interval (degrees).
+ * @param {number} tMin - Start angle (degrees).
+ * @param {number} tMax - End angle (degrees).
+ * @param {string} orientation - Curve direction ('horizontal' or 'vertical').
+ * @returns {Array<Object>} Array of point data.
  */
 function calculateHyperbola(xc, yc, a, b, delta, tMin, tMax, orientation) {
     const points = [];

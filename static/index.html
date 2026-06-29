@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Kurva Parametrik — Visualisasi Titik</title>
     <meta name="description" content="Dashboard interaktif untuk merender dan menganalisis kurva parametrik (Lingkaran, Elips, Parabola, Hiperbola) dengan output titik-titik dan detail perhitungan matematis lengkap.">
-    <link rel="stylesheet" href="/static/css/style.css?v=15">
+    <link rel="stylesheet" href="/static/css/style.css?v=16">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -41,6 +41,15 @@
             <button id="btnProcess" class="btn-primary">
                 <span class="btn-icon">●</span> Proses Gambar (Titik)
             </button>
+
+            <!-- Brand Logo -->
+            <div class="brand-logo">
+                <span class="brand-text">Created by <span class="brand-name">Lanciuy</span></span>
+                <div class="brand-animation">
+                    <span class="pulse-ring"></span>
+                    <span class="core-dot"></span>
+                </div>
+            </div>
         </aside>
 
         <!-- Kolom Kanan: Visualisasi & Penjelasan -->
@@ -110,6 +119,6 @@
     <!-- Scripts dipisah per tanggung jawab -->
     <script src="/static/js/geometryCalc.js?v=10"></script>
     <script src="/static/js/canvasAnimator.js?v=16"></script>
-    <script src="/static/js/ui.js?v=19"></script>
+    <script src="/static/js/ui.js?v=20"></script>
 </body>
 </html>

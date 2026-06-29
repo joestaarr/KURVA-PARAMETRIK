@@ -15,18 +15,10 @@ const btnProcess = document.getElementById('btnProcess');
 // DEFINISI PARAMETER FORM (Data Controller)
 // =====================================================================
 /**
- * [DATA CONTROLLER] getParamDefs
- * ---------------------------------------------------------------------
- * Fungsi ini mengelola SKEMA DATA untuk form input. Setiap kurva punya 
- * kebutuhan parameter matematis yang berbeda.
+ * Define parameter schemas for dynamic form generation based on curve type.
  * 
- * @param {string} curveType - Jenis kurva ('circle', 'ellipse', 'parabola', 'hyperbola')
- * @returns {Array<Object>} Array berisi definisi input (id, label, type, default, step).
- * 
- * Penjelasan Output:
- * - commonParams: Selalu merender titik pusat (xc, yc) dan rentang sudut/waktu (tMin, tMax, delta).
- * - Khusus Parabola/Hiperbola: Terdapat tipe input 'select' untuk orientasi kurva.
- * Data ini tidak langsung tampil di layar, melainkan disuplai ke [UI CONTROLLER].
+ * @param {string} curveType - Type of curve ('circle', 'ellipse', 'parabola', 'hyperbola').
+ * @returns {Array<Object>} Array of parameter definitions (id, label, type, default, etc).
  */
 function getParamDefs(curveType) {
     const commonParams = [
@@ -85,20 +77,10 @@ function getParamDefs(curveType) {
 // PRESETS (Library Controller)
 // =====================================================================
 /**
- * [LIBRARY CONTROLLER] getPresets
- * ---------------------------------------------------------------------
- * Menyimpan 'Blueprints' atau Preset angka cantik yang sudah teruji 
- * menghasilkan visualisasi kurva yang proposional dan simetris di kanvas.
+ * Library of pre-configured parameter presets for each curve type.
  * 
- * @param {string} curveType - Jenis kurva
- * @returns {Array<Object>} Kumpulan preset siap pakai
- * 
- * Penjelasan Output (Contoh Lingkaran):
- * Mengembalikan array of objects, di mana setiap object punya:
- * - label: Nama tombol preset (misal: "Kecil", "Besar")
- * - params: Object berisi nilai pasti untuk menimpa form (xc, yc, r, tMin, tMax, delta)
- * Catatan Teknis: Semua nilai delta pada Lingkaran & Elips sudah
- * dipastikan merupakan pembagi bulat dari 90 agar render titiknya simetris.
+ * @param {string} curveType - Type of curve.
+ * @returns {Array<Object>} Array of preset objects containing label and params.
  */
 function getPresets(curveType) {
     switch (curveType) {
@@ -253,8 +235,8 @@ function fmt(val, decimals = 4) {
     if (val === undefined || val === null || isNaN(val)) return '—';
     if (!isFinite(val)) return '∞';
     
-    // Pembulatan dengan presisi tinggi
-    return Number(val).toFixed(decimals);
+    // Pembulatan dengan presisi tinggi, buang nol yang tidak perlu
+    return parseFloat(Number(val).toFixed(decimals));
 }
 
 // =====================================================================
