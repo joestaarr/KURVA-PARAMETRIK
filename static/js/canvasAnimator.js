@@ -9,6 +9,17 @@ const ctx = canvas.getContext('2d');
 let animationFrameId = null;
 
 // =====================================================================
+// TRANSFORM STATE (ZOOM & PAN)
+// =====================================================================
+let currentScale = 1;
+let offsetX = 0;
+let offsetY = 0;
+let isDragging = false;
+let dragStartX = 0;
+let dragStartY = 0;
+let cachedPointsArray = null;
+
+// =====================================================================
 // COORDINATE MAPPING (AKURAT & VALIDASI)
 // =====================================================================
 /**
@@ -27,8 +38,8 @@ let animationFrameId = null;
  * untuk menghindari rendering artefak di luar area display
  */
 function mapCoordinate(x, y, w, h) {
-    const px = w / 2 + x;
-    const py = h / 2 - y;
+    const px = w / 2 + (x * currentScale) + offsetX;
+    const py = h / 2 - (y * currentScale) + offsetY;
     
     // Validasi: pastikan titik dalam canvas bounds (dengan buffer kecil)
     // Jika titik keluar canvas, kembalikan null untuk diskip
@@ -58,43 +69,82 @@ function drawGrid(ctx, w, h) {
     ctx.font = '9px Inter, sans-serif';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.35)';
 
-    const step = 30;       // Grid setiap 30px
-    const tickStep = 60;   // Angka label setiap 60px
+    const baseStep = 30;       // Grid setiap 30px secara logis
+    const baseTickStep = 60;   // Angka label setiap 60px
 
-    // Grid vertikal + tick mark sumbu X
-    for (let x = 0; x <= w; x += step) {
+    // Adaptive step based on scale
+    let logicalStep = baseStep / currentScale;
+    let logicalTickStep = baseTickStep / currentScale;
+    
+    // To make it look nice, round logical step to nice numbers (1, 2, 5, 10, etc)
+    const niceSteps = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
+    let selectedStep = niceSteps[0];
+    for (let s of niceSteps) {
+        if (s >= baseStep / currentScale) {
+            selectedStep = s;
+            break;
+        }
+    }
+    logicalStep = selectedStep;
+    logicalTickStep = logicalStep * 2;
+
+    const physicalStep = logicalStep * currentScale;
+
+    // Center screen in mathematical coordinates
+    const centerX = -offsetX / currentScale;
+    const centerY = offsetY / currentScale;
+    
+    const startX = Math.floor((centerX - w/2 / currentScale) / logicalStep) * logicalStep;
+    const endX = Math.ceil((centerX + w/2 / currentScale) / logicalStep) * logicalStep;
+    
+    const startY = Math.floor((centerY - h/2 / currentScale) / logicalStep) * logicalStep;
+    const endY = Math.ceil((centerY + h/2 / currentScale) / logicalStep) * logicalStep;
+
+    // Grid vertikal
+    for (let x = startX; x <= endX; x += logicalStep) {
+        const px = w/2 + (x * currentScale) + offsetX;
+        if (px < 0 || px > w) continue;
+        
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
+        ctx.moveTo(px, 0);
+        ctx.lineTo(px, h);
         ctx.stroke();
 
-        if (x % tickStep === 0 && x !== w / 2) {
-            const val = x - w / 2;
-            ctx.fillText(val, x + 2, h / 2 - 5);
-
+        if (Math.abs(x % logicalTickStep) < logicalStep * 0.1 && Math.abs(x) > 0.01) {
+            const pyZero = h/2 + offsetY;
+            const pyDraw = pyZero > 10 && pyZero < h - 10 ? pyZero : (pyZero <= 10 ? 10 : h - 10);
+            
+            // Format angka untuk membuang desimal yang berlebihan akibat precision issue
+            let valText = Number(x.toPrecision(10)).toString();
+            ctx.fillText(valText, px + 2, pyDraw - 5);
             ctx.beginPath();
-            ctx.moveTo(x, h / 2 - 3);
-            ctx.lineTo(x, h / 2 + 3);
+            ctx.moveTo(px, pyDraw - 3);
+            ctx.lineTo(px, pyDraw + 3);
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
             ctx.stroke();
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
         }
     }
 
-    // Grid horizontal + tick mark sumbu Y
-    for (let y = 0; y <= h; y += step) {
+    // Grid horizontal
+    for (let y = startY; y <= endY; y += logicalStep) {
+        const py = h/2 - (y * currentScale) + offsetY;
+        if (py < 0 || py > h) continue;
+
         ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
+        ctx.moveTo(0, py);
+        ctx.lineTo(w, py);
         ctx.stroke();
 
-        if (y % tickStep === 0 && y !== h / 2) {
-            const val = h / 2 - y;
-            ctx.fillText(val, w / 2 + 5, y - 2);
-
+        if (Math.abs(y % logicalTickStep) < logicalStep * 0.1 && Math.abs(y) > 0.01) {
+            const pxZero = w/2 + offsetX;
+            const pxDraw = pxZero > 10 && pxZero < w - 20 ? pxZero : (pxZero <= 10 ? 10 : w - 20);
+            
+            let valText = Number(y.toPrecision(10)).toString();
+            ctx.fillText(valText, pxDraw + 5, py - 2);
             ctx.beginPath();
-            ctx.moveTo(w / 2 - 3, y);
-            ctx.lineTo(w / 2 + 3, y);
+            ctx.moveTo(pxDraw - 3, py);
+            ctx.lineTo(pxDraw + 3, py);
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
             ctx.stroke();
             ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
@@ -102,29 +152,39 @@ function drawGrid(ctx, w, h) {
     }
 
     // Sumbu X utama
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(0, h / 2);
-    ctx.lineTo(w, h / 2);
-    ctx.stroke();
+    const pyZero = h / 2 + offsetY;
+    if (pyZero >= 0 && pyZero <= h) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, pyZero);
+        ctx.lineTo(w, pyZero);
+        ctx.stroke();
+        ctx.font = '11px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillText('X', w - 15, pyZero - 8);
+    }
 
     // Sumbu Y utama
-    ctx.beginPath();
-    ctx.moveTo(w / 2, 0);
-    ctx.lineTo(w / 2, h);
-    ctx.stroke();
-
-    // Label sumbu
-    ctx.font = '11px Inter, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.fillText('X', w - 15, h / 2 - 8);
-    ctx.fillText('Y', w / 2 + 8, 14);
+    const pxZero = w / 2 + offsetX;
+    if (pxZero >= 0 && pxZero <= w) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(pxZero, 0);
+        ctx.lineTo(pxZero, h);
+        ctx.stroke();
+        ctx.font = '11px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.fillText('Y', pxZero + 8, 14);
+    }
 
     // Label Origin
-    ctx.font = '9px Inter, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-    ctx.fillText('O', w / 2 + 4, h / 2 + 12);
+    if (pxZero >= 0 && pxZero <= w && pyZero >= 0 && pyZero <= h) {
+        ctx.font = '9px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.fillText('O', pxZero + 4, pyZero + 12);
+    }
 }
 
 // =====================================================================
@@ -318,6 +378,35 @@ function animateCurve(pointsArray) {
     const totalPoints = pointsArray.length;
     let currentIdx = 0;
     const startTime = performance.now();
+    
+    cachedPointsArray = pointsArray;
+
+    // Auto-fit (Auto-scale) logic
+    if (pointsArray.meta && pointsArray.meta.boundingBox) {
+        const box = pointsArray.meta.boundingBox;
+        const width = box.xMax - box.xMin;
+        const height = box.yMax - box.yMin;
+        
+        // Calculate scale to fit with 20% margin
+        const scaleX = (w * 0.8) / (width || 1);
+        const scaleY = (h * 0.8) / (height || 1);
+        currentScale = Math.min(scaleX, scaleY);
+        if (currentScale > 50) currentScale = 50;
+        if (currentScale < 0.05) currentScale = 0.05;
+        
+        // Calculate offset to center the bounding box
+        const centerX = (box.xMin + box.xMax) / 2;
+        const centerY = (box.yMin + box.yMax) / 2;
+        offsetX = -(centerX * currentScale);
+        offsetY = (centerY * currentScale);
+    } else {
+        currentScale = 1;
+        offsetX = 0;
+        offsetY = 0;
+    }
+    
+    // Grid perlu digambar ulang dengan scale baru
+    resetCanvas();
 
     const liveX = document.getElementById('liveX');
     const liveY = document.getElementById('liveY');
@@ -457,3 +546,98 @@ async function saveDataToBackend(points, totalPoints) {
 window.addEventListener('load', () => {
     resetCanvas();
 });
+
+// =====================================================================
+// EVENTS: PAN & ZOOM
+// =====================================================================
+canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    dragStartX = e.clientX - offsetX;
+    dragStartY = e.clientY - offsetY;
+    canvas.style.cursor = 'grabbing';
+});
+
+canvas.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    offsetX = e.clientX - dragStartX;
+    offsetY = e.clientY - dragStartY;
+    redrawCanvas();
+});
+
+canvas.addEventListener('mouseup', () => {
+    isDragging = false;
+    canvas.style.cursor = 'default';
+});
+
+canvas.addEventListener('mouseleave', () => {
+    isDragging = false;
+    canvas.style.cursor = 'default';
+});
+
+canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    
+    const zoomIntensity = 0.1;
+    const wheel = e.deltaY < 0 ? 1 : -1;
+    const zoomFactor = Math.exp(wheel * zoomIntensity);
+    
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+    
+    // Convert mouse to mathematical coordinates
+    const mathX = (mouseX - canvas.width / 2 - offsetX) / currentScale;
+    const mathY = -(mouseY - canvas.height / 2 - offsetY) / currentScale;
+    
+    currentScale *= zoomFactor;
+    
+    // Adjust offset so mouse position remains at the same mathematical coordinate
+    offsetX = mouseX - canvas.width / 2 - (mathX * currentScale);
+    offsetY = mouseY - canvas.height / 2 + (mathY * currentScale);
+    
+    redrawCanvas();
+});
+
+function redrawCanvas() {
+    if (!cachedPointsArray) {
+        resetCanvas();
+        return;
+    }
+    
+    resetCanvas();
+    const w = canvas.width;
+    const h = canvas.height;
+    
+    if (cachedPointsArray.meta) {
+        const meta = cachedPointsArray.meta;
+        if (meta.titikPusat) {
+            drawCenterMarker(ctx, meta.titikPusat.x, meta.titikPusat.y, w, h);
+        } else if (meta.vertex) {
+            drawCenterMarker(ctx, meta.vertex.x, meta.vertex.y, w, h);
+        }
+    }
+    
+    // We only redraw data points that were already rendered
+    // If the animation is still playing, we redraw everything up to currentIdx
+    // For simplicity, we just redraw all of them if the animation finished, or up to the current progress.
+    for (let i = 0; i < cachedPointsArray.length; i++) {
+        const pt = cachedPointsArray[i];
+        if (pt.break) continue;
+        
+        const mapped = mapCoordinate(pt.x, pt.y, w, h);
+        if (!mapped) continue;
+        
+        const dotSize = pt.speed !== undefined ? getPointSize(pt.speed, 1.2, 2.8) : 1.8;
+        const progress = i / Math.max(1, cachedPointsArray.length - 1);
+        const color = getPointColor(progress);
+        
+        ctx.beginPath();
+        ctx.arc(mapped.px, mapped.py, dotSize, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+        ctx.lineWidth = 0.5;
+        ctx.stroke();
+    }
+}

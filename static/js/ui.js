@@ -227,23 +227,23 @@ function updateAnalysisPanel(curveType, values, points) {
             equationHTML = `
                 <div class="eq-block">
                     <span class="eq-label">Persamaan Parametrik:</span>
-                    <div class="eq-formula">x(t) = ${values.xc} + ${r} · cos(t)</div>
-                    <div class="eq-formula">y(t) = ${values.yc} + ${r} · sin(t)</div>
+                    <div class="eq-formula">$$ x(t) = ${values.xc} + ${r} \\cos(t) $$</div>
+                    <div class="eq-formula">$$ y(t) = ${values.yc} + ${r} \\sin(t) $$</div>
                 </div>
                 <div class="eq-block">
                     <span class="eq-label">Persamaan Kartesian:</span>
-                    <div class="eq-formula">(x − ${values.xc})² + (y − ${values.yc})² = ${r}² = ${r*r}</div>
+                    <div class="eq-formula">$$ (x - ${values.xc})^2 + (y - ${values.yc})^2 = ${r}^2 = ${r*r} $$</div>
                 </div>
             `;
             derivHTML = `
                 <div class="eq-block">
                     <span class="eq-label">Turunan Pertama:</span>
-                    <div class="eq-formula">dx/dt = −${r} · sin(t)</div>
-                    <div class="eq-formula">dy/dt = ${r} · cos(t)</div>
+                    <div class="eq-formula">$$ \\frac{dx}{dt} = -${r} \\sin(t) $$</div>
+                    <div class="eq-formula">$$ \\frac{dy}{dt} = ${r} \\cos(t) $$</div>
                 </div>
                 <div class="eq-block">
                     <span class="eq-label">Kecepatan Parametrik:</span>
-                    <div class="eq-formula">|v(t)| = √(dx/dt² + dy/dt²) = ${r} (konstan)</div>
+                    <div class="eq-formula">$$ |v(t)| = \\sqrt{\\left(\\frac{dx}{dt}\\right)^2 + \\left(\\frac{dy}{dt}\\right)^2} = ${r} \\text{ (konstan)} $$</div>
                 </div>
             `;
             geometryHTML = `
@@ -271,27 +271,27 @@ function updateAnalysisPanel(curveType, values, points) {
             equationHTML = `
                 <div class="eq-block">
                     <span class="eq-label">Persamaan Parametrik:</span>
-                    <div class="eq-formula">x(t) = ${values.xc} + ${a} · cos(t)</div>
-                    <div class="eq-formula">y(t) = ${values.yc} + ${b} · sin(t)</div>
+                    <div class="eq-formula">$$ x(t) = ${values.xc} + ${a} \\cos(t) $$</div>
+                    <div class="eq-formula">$$ y(t) = ${values.yc} + ${b} \\sin(t) $$</div>
                 </div>
                 <div class="eq-block">
                     <span class="eq-label">Persamaan Kartesian:</span>
-                    <div class="eq-formula">(x − ${values.xc})²/${a}² + (y − ${values.yc})²/${b}² = 1</div>
+                    <div class="eq-formula">$$ \\frac{(x - ${values.xc})^2}{${a}^2} + \\frac{(y - ${values.yc})^2}{${b}^2} = 1 $$</div>
                 </div>
             `;
             derivHTML = `
                 <div class="eq-block">
                     <span class="eq-label">Turunan Pertama:</span>
-                    <div class="eq-formula">dx/dt = −${a} · sin(t)</div>
-                    <div class="eq-formula">dy/dt = ${b} · cos(t)</div>
+                    <div class="eq-formula">$$ \\frac{dx}{dt} = -${a} \\sin(t) $$</div>
+                    <div class="eq-formula">$$ \\frac{dy}{dt} = ${b} \\cos(t) $$</div>
                 </div>
                 <div class="eq-block">
                     <span class="eq-label">Kecepatan Parametrik:</span>
-                    <div class="eq-formula">|v(t)| = √(${a}²sin²t + ${b}²cos²t) — bervariasi</div>
+                    <div class="eq-formula">$$ |v(t)| = \\sqrt{${a}^2\\sin^2(t) + ${b}^2\\cos^2(t)} \\text{ (bervariasi)} $$</div>
                 </div>
                 <div class="eq-block">
                     <span class="eq-label">Kelengkungan:</span>
-                    <div class="eq-formula">κ(t) = ${a}·${b} / (${a}²sin²t + ${b}²cos²t)^(3/2)</div>
+                    <div class="eq-formula">$$ \\kappa(t) = \\frac{${a} \\cdot ${b}}{(${a}^2\\sin^2(t) + ${b}^2\\cos^2(t))^{3/2}} $$</div>
                 </div>
             `;
             geometryHTML = `
@@ -322,20 +322,20 @@ function updateAnalysisPanel(curveType, values, points) {
 
             switch (ori) {
                 case 'right':
-                    eqX = `x(t) = ${values.xc} + ${a}·t²`; eqY = `y(t) = ${values.yc} + ${2*a}·t`;
-                    dX = `dx/dt = ${2*a}·t`; dY = `dy/dt = ${2*a}`;
+                    eqX = `$$ x(t) = ${values.xc} + ${a} t^2 $$`; eqY = `$$ y(t) = ${values.yc} + ${2*a} t $$`;
+                    dX = `$$ \\frac{dx}{dt} = ${2*a} t $$`; dY = `$$ \\frac{dy}{dt} = ${2*a} $$`;
                     break;
                 case 'left':
-                    eqX = `x(t) = ${values.xc} − ${a}·t²`; eqY = `y(t) = ${values.yc} + ${2*a}·t`;
-                    dX = `dx/dt = −${2*a}·t`; dY = `dy/dt = ${2*a}`;
+                    eqX = `$$ x(t) = ${values.xc} - ${a} t^2 $$`; eqY = `$$ y(t) = ${values.yc} + ${2*a} t $$`;
+                    dX = `$$ \\frac{dx}{dt} = -${2*a} t $$`; dY = `$$ \\frac{dy}{dt} = ${2*a} $$`;
                     break;
                 case 'up':
-                    eqX = `x(t) = ${values.xc} + ${2*a}·t`; eqY = `y(t) = ${values.yc} + ${a}·t²`;
-                    dX = `dx/dt = ${2*a}`; dY = `dy/dt = ${2*a}·t`;
+                    eqX = `$$ x(t) = ${values.xc} + ${2*a} t $$`; eqY = `$$ y(t) = ${values.yc} + ${a} t^2 $$`;
+                    dX = `$$ \\frac{dx}{dt} = ${2*a} $$`; dY = `$$ \\frac{dy}{dt} = ${2*a} t $$`;
                     break;
                 case 'down':
-                    eqX = `x(t) = ${values.xc} + ${2*a}·t`; eqY = `y(t) = ${values.yc} − ${a}·t²`;
-                    dX = `dx/dt = ${2*a}`; dY = `dy/dt = −${2*a}·t`;
+                    eqX = `$$ x(t) = ${values.xc} + ${2*a} t $$`; eqY = `$$ y(t) = ${values.yc} - ${a} t^2 $$`;
+                    dX = `$$ \\frac{dx}{dt} = ${2*a} $$`; dY = `$$ \\frac{dy}{dt} = -${2*a} t $$`;
                     break;
             }
 
@@ -354,8 +354,8 @@ function updateAnalysisPanel(curveType, values, points) {
                 </div>
                 <div class="eq-block">
                     <span class="eq-label">Kelengkungan:</span>
-                    <div class="eq-formula">κ(t) = 1 / (${2*a} · (1 + t²)^(3/2))</div>
-                    <div class="eq-formula">κ(0) = ${fmt(meta.kelengkunganVertex, 6)} (di vertex)</div>
+                    <div class="eq-formula">$$ \\kappa(t) = \\frac{1}{${2*a} (1 + t^2)^{3/2}} $$</div>
+                    <div class="eq-formula">$$ \\kappa(0) = ${fmt(meta.kelengkunganVertex, 6)} \\text{ (di vertex)} $$</div>
                 </div>
             `;
             geometryHTML = `
@@ -382,13 +382,13 @@ function updateAnalysisPanel(curveType, values, points) {
 
             if (ori === 'vertical') {
                 mainEq = `
-                    <div class="eq-formula">x(t) = ${values.xc} + ${b} · tan(t)</div>
-                    <div class="eq-formula">y(t) = ${values.yc} ± ${a} · sec(t)</div>
+                    <div class="eq-formula">$$ x(t) = ${values.xc} + ${b} \\tan(t) $$</div>
+                    <div class="eq-formula">$$ y(t) = ${values.yc} \\pm ${a} \\sec(t) $$</div>
                 `;
             } else {
                 mainEq = `
-                    <div class="eq-formula">x(t) = ${values.xc} ± ${a} · sec(t)</div>
-                    <div class="eq-formula">y(t) = ${values.yc} + ${b} · tan(t)</div>
+                    <div class="eq-formula">$$ x(t) = ${values.xc} \\pm ${a} \\sec(t) $$</div>
+                    <div class="eq-formula">$$ y(t) = ${values.yc} + ${b} \\tan(t) $$</div>
                 `;
             }
 
@@ -400,19 +400,19 @@ function updateAnalysisPanel(curveType, values, points) {
                 <div class="eq-block">
                     <span class="eq-label">Persamaan Kartesian:</span>
                     <div class="eq-formula">${ori !== 'vertical' 
-                        ? `(x − ${values.xc})²/${a}² − (y − ${values.yc})²/${b}² = 1` 
-                        : `(y − ${values.yc})²/${a}² − (x − ${values.xc})²/${b}² = 1`}</div>
+                        ? `$$ \\frac{(x - ${values.xc})^2}{${a}^2} - \\frac{(y - ${values.yc})^2}{${b}^2} = 1 $$` 
+                        : `$$ \\frac{(y - ${values.yc})^2}{${a}^2} - \\frac{(x - ${values.xc})^2}{${b}^2} = 1 $$`}</div>
                 </div>
             `;
             derivHTML = `
                 <div class="eq-block">
                     <span class="eq-label">Turunan Pertama:</span>
                     <div class="eq-formula">${ori !== 'vertical' 
-                        ? `dx/dt = ${a} · sec(t)·tan(t)` 
-                        : `dx/dt = ${b} · sec²(t)`}</div>
+                        ? `$$ \\frac{dx}{dt} = ${a} \\sec(t)\\tan(t) $$` 
+                        : `$$ \\frac{dx}{dt} = ${b} \\sec^2(t) $$`}</div>
                     <div class="eq-formula">${ori !== 'vertical' 
-                        ? `dy/dt = ${b} · sec²(t)` 
-                        : `dy/dt = ${a} · sec(t)·tan(t)`}</div>
+                        ? `$$ \\frac{dy}{dt} = ${b} \\sec^2(t) $$` 
+                        : `$$ \\frac{dy}{dt} = ${a} \\sec(t)\\tan(t) $$`}</div>
                 </div>
             `;
             geometryHTML = `
@@ -465,6 +465,9 @@ function updateAnalysisPanel(curveType, values, points) {
         </div>
     `;
     analysisContent.innerHTML = html;
+    if (window.MathJax) {
+        MathJax.typesetPromise([analysisContent]).catch((err) => console.log(err.message));
+    }
 
     // Isi tabel sampel perhitungan
     updateCalcTable(dataPoints, curveType);
