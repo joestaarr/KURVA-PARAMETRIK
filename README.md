@@ -1,8 +1,6 @@
 <div align="center">
   <!-- ANIMASI TYPING (SVG ANIMATED) -->
-  <a href="https://git.io/typing-svg">
-    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=32&pause=1000&color=D95A43&center=true&vCenter=true&width=800&height=80&lines=🌌+Dashboard+Kurva+Parametrik;✨+Created+with+Passion+by+Lanciuy;🚀+Dot-by-Dot+Rendering+Engine" alt="Typing SVG" />
-  </a>
+  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=30&pause=1000&color=D95A43&center=true&vCenter=true&width=800&height=60&lines=Dashboard+Kurva+Parametrik;Created+with+Passion+by+Lanciuy;Dot-by-Dot+Rendering+Engine" alt="Typing SVG" />
   <br>
   
   <img src="https://img.shields.io/badge/Status-Active-success?style=for-the-badge&logo=appveyor" />
