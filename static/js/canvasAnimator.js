@@ -632,6 +632,10 @@ canvas.addEventListener('wheel', (e) => {
     
     currentScale *= zoomFactor;
     
+    // Batasi zoom agar tidak terlalu jauh/dekat (menghindari error hitungan matematis)
+    if (currentScale < 0.001) currentScale = 0.001;
+    if (currentScale > 500) currentScale = 500;
+    
     // Adjust offset so mouse position remains at the same mathematical coordinate
     offsetX = mouseX - canvas.width / 2 - (mathX * currentScale);
     offsetY = mouseY - canvas.height / 2 + (mathY * currentScale);
