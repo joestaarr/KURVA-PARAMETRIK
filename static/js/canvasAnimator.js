@@ -68,16 +68,17 @@ function drawGrid(ctx, w, h) {
     // Adaptive step based on scale
     let logicalMajorStep = baseMajorSize / currentScale;
     
-    // Round to nice numbers
-    const niceSteps = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000];
-    let selectedStep = niceSteps[0];
-    for (let s of niceSteps) {
-        if (s >= logicalMajorStep) {
-            selectedStep = s;
-            break;
-        }
-    }
-    logicalMajorStep = selectedStep;
+    // Calculate dynamic nice step based on order of magnitude
+    const exponent = Math.floor(Math.log10(logicalMajorStep));
+    const fraction = logicalMajorStep / Math.pow(10, exponent);
+    
+    let niceFraction;
+    if (fraction <= 1) niceFraction = 1;
+    else if (fraction <= 2) niceFraction = 2;
+    else if (fraction <= 5) niceFraction = 5;
+    else niceFraction = 10;
+    
+    logicalMajorStep = niceFraction * Math.pow(10, exponent);
     const logicalMinorStep = logicalMajorStep / 10; // 1 kotak besar dipecah 10 kotak kecil
     
     // Center screen in mathematical coordinates
